@@ -1,27 +1,47 @@
-package com.github.keler1024.expensesandincomeservice.data.entities;
+package com.github.keler1024.expensesandincomeservice.data.entity;
 
 import com.github.keler1024.expensesandincomeservice.data.enums.AccountChangeType;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.*;
 
+//TODO Try to add null checks to keep it null safe
+//TODO add tags
 @Entity
 @Table
 public class AccountChange {
     @Id
-    @GeneratedValue
+    @SequenceGenerator(
+            name = "accountChange_sequence_generator",
+            sequenceName = "accountChange_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "accountChange_sequence_generator"
+    )
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name="account_id")
     private Account account;
     private AccountChangeType changeType;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="category_id")
     private AccountChangeCategory category;
     private Long amount;
     private LocalDateTime dateTime;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "account_change_tags",
+            joinColumns = @JoinColumn(name = "account_change_id"),
+            inverseJoinColumns = @JoinColumn(name = "account_change_tag_id"))
+    private Set<AccountChangeTag> tags;
     private String place;
     private String comment;
+
+    public AccountChange() {}
 
     public AccountChange(Account account,
                          AccountChangeType changeType,
@@ -29,7 +49,8 @@ public class AccountChange {
                          Long amount,
                          LocalDateTime dateTime,
                          String place,
-                         String comment) {
+                         String comment,
+                         Collection<AccountChangeTag> tags) {
         this.account = account;
         this.changeType = changeType;
         this.category = category;
@@ -37,6 +58,7 @@ public class AccountChange {
         this.dateTime = dateTime;
         this.place = place;
         this.comment = comment;
+        this.tags = new HashSet<>(tags);
     }
 
     public AccountChange(Long id,
@@ -113,12 +135,37 @@ public class AccountChange {
         this.comment = comment;
     }
 
-    public Account getAccountId() {
+    public Account getAccount() {
         return account;
     }
 
-    public void setAccountId(Account account) {
+    public void setAccount(Account account) {
         this.account = account;
+    }
+
+    public Set<AccountChangeTag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<AccountChangeTag> tags) {
+        if (tags == null) {
+            throw new NullPointerException();
+        }
+        this.tags = new HashSet<>(tags);
+    }
+
+    public void addTag(AccountChangeTag tag) {
+        if (tags == null) {
+            throw new NullPointerException();
+        }
+        tags.add(tag);
+    }
+
+    public void removeTag(AccountChangeTag tag) {
+        if (tags == null) {
+            throw new NullPointerException();
+        }
+        tags.remove(tag);
     }
 
     @Override
@@ -131,7 +178,30 @@ public class AccountChange {
                 ", amount=" + amount +
                 ", dateTime=" + dateTime +
                 ", place='" + place + '\'' +
+                ", tags=" + tags +
                 ", comment='" + comment + '\'' +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AccountChange)) return false;
+        AccountChange that = (AccountChange) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(account, that.account)
+                && changeType == that.changeType
+                && Objects.equals(category, that.category)
+                && Objects.equals(tags, that.tags)
+                && Objects.equals(amount, that.amount)
+                && Objects.equals(dateTime, that.dateTime)
+                && Objects.equals(place, that.place)
+                && Objects.equals(comment, that.comment);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, account, changeType, category, tags, amount, dateTime, place, comment);
+    }
+
 }

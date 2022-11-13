@@ -16,6 +16,6 @@ public class CurrencyConverter implements AttributeConverter<Currency, String> {
 
     @Override
     public Currency convertToEntityAttribute(String s) {
-        return null;
+        return Currency.of(s);
     }
 }

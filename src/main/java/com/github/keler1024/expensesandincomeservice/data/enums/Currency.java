@@ -23,4 +23,11 @@ public enum Currency {
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
     }
+
+    @Override
+    public String toString() {
+        return "Currency{" +
+                "currencyCode='" + getCurrencyCode() + '\'' +
+                '}';
+    }
 }
