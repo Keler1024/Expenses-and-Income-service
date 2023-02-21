@@ -56,7 +56,7 @@ public class AccountController extends BaseController {
         Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
                 accountService.addAccount(accountRequest, ownerId),
-                HttpStatus.OK
+                HttpStatus.CREATED
         );
     }
 

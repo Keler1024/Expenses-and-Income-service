@@ -49,7 +49,7 @@ public class TagController extends BaseController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
-        return new ResponseEntity<>(tagService.add(tagRequest, ownerId), HttpStatus.OK);
+        return new ResponseEntity<>(tagService.add(tagRequest, ownerId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")

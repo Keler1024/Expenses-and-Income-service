@@ -59,7 +59,7 @@ public class ChangeController {
         if(changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(changeService.addChange(changeRequest), HttpStatus.OK);
+        return new ResponseEntity<>(changeService.addChange(changeRequest), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
