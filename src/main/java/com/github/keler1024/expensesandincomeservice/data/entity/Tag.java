@@ -5,7 +5,7 @@ import java.util.Objects;
 
 @Entity
 @Table
-public class AccountChangeTag {
+public class Tag {
     @Id
     @SequenceGenerator(
             name = "accountChangeTag_sequence_generator",
@@ -18,20 +18,20 @@ public class AccountChangeTag {
     )
     private Long id;
     private String name;
-    private Long authorId;
+    private Long ownerId;
 
-    public AccountChangeTag() {
+    public Tag() {
     }
 
-    public AccountChangeTag(Long id, String name, Long authorId) {
+    public Tag(Long id, String name, Long ownerId) {
         this.id = id;
         this.name = name;
-        this.authorId = authorId;
+        this.ownerId = ownerId;
     }
 
-    public AccountChangeTag(String name, Long authorId) {
+    public Tag(String name, Long ownerId) {
         this.name = name;
-        this.authorId = authorId;
+        this.ownerId = ownerId;
     }
 
     public Long getId() {
@@ -50,12 +50,12 @@ public class AccountChangeTag {
         this.name = name;
     }
 
-    public Long getAuthorId() {
-        return authorId;
+    public Long getOwnerId() {
+        return ownerId;
     }
 
-    public void setAuthorId(Long authorId) {
-        this.authorId = authorId;
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -63,22 +63,22 @@ public class AccountChangeTag {
         return "AccountChangeTag{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", authorId=" + authorId +
+                ", authorId=" + ownerId +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AccountChangeTag)) return false;
-        AccountChangeTag that = (AccountChangeTag) o;
+        if (!(o instanceof Tag)) return false;
+        Tag that = (Tag) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(name, that.name)
-                && Objects.equals(authorId, that.authorId);
+                && Objects.equals(ownerId, that.ownerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, authorId);
+        return Objects.hash(id, name, ownerId);
     }
 }

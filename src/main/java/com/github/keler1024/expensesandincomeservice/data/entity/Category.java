@@ -3,10 +3,10 @@ package com.github.keler1024.expensesandincomeservice.data.entity;
 import javax.persistence.*;
 import java.util.Objects;
 
-//TODO Try to add null checks to keep it null safe
+
 @Entity
 @Table
-public class AccountChangeCategory {
+public class Category {
     @Id
     @SequenceGenerator(
             name = "accountChangeCategory_sequence_generator",
@@ -19,19 +19,19 @@ public class AccountChangeCategory {
     )
     private Long id;
     private String name;
-    private Long authorId;
+    private Long ownerId;
 
-    public AccountChangeCategory() {}
+    public Category() {}
 
-    public AccountChangeCategory(Long id, String name, Long authorId) {
+    public Category(Long id, String name, Long ownerId) {
         this.id = id;
         this.name = name;
-        this.authorId = authorId;
+        this.ownerId = ownerId;
     }
 
-    public AccountChangeCategory(String name, Long authorId) {
+    public Category(String name, Long ownerId) {
         this.name = name;
-        this.authorId = authorId;
+        this.ownerId = ownerId;
     }
 
     public Long getId() {
@@ -50,12 +50,12 @@ public class AccountChangeCategory {
         this.name = name;
     }
 
-    public Long getAuthorId() {
-        return authorId;
+    public Long getOwnerId() {
+        return ownerId;
     }
 
-    public void setAuthorId(Long authorId) {
-        this.authorId = authorId;
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -63,22 +63,22 @@ public class AccountChangeCategory {
         return "AccountChangeCategory{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", authorId=" + authorId +
+                ", authorId=" + ownerId +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AccountChangeCategory)) return false;
-        AccountChangeCategory category = (AccountChangeCategory) o;
+        if (!(o instanceof Category)) return false;
+        Category category = (Category) o;
         return Objects.equals(id, category.id)
                 && Objects.equals(name, category.name)
-                && Objects.equals(authorId, category.authorId);
+                && Objects.equals(ownerId, category.ownerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, authorId);
+        return Objects.hash(id, name, ownerId);
     }
 }

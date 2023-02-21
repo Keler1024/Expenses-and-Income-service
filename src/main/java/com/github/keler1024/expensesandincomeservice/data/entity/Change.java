@@ -1,8 +1,5 @@
 package com.github.keler1024.expensesandincomeservice.data.entity;
 
-import com.github.keler1024.expensesandincomeservice.data.enums.AccountChangeType;
-import org.springframework.lang.NonNull;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -11,7 +8,7 @@ import java.util.*;
 //TODO add tags
 @Entity
 @Table
-public class AccountChange {
+public class Change {
     @Id
     @SequenceGenerator(
             name = "accountChange_sequence_generator",
@@ -26,10 +23,9 @@ public class AccountChange {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name="account_id")
     private Account account;
-    private AccountChangeType changeType;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="category_id")
-    private AccountChangeCategory category;
+    private Category category;
     private Long amount;
     private LocalDateTime dateTime;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -37,22 +33,20 @@ public class AccountChange {
             name = "account_change_tags",
             joinColumns = @JoinColumn(name = "account_change_id"),
             inverseJoinColumns = @JoinColumn(name = "account_change_tag_id"))
-    private Set<AccountChangeTag> tags;
+    private Set<Tag> tags;
     private String place;
     private String comment;
 
-    public AccountChange() {}
+    public Change() {}
 
-    public AccountChange(Account account,
-                         AccountChangeType changeType,
-                         AccountChangeCategory category,
-                         Long amount,
-                         LocalDateTime dateTime,
-                         String place,
-                         String comment,
-                         Collection<AccountChangeTag> tags) {
+    public Change(Account account,
+                  Category category,
+                  Long amount,
+                  LocalDateTime dateTime,
+                  String place,
+                  String comment,
+                  Collection<Tag> tags) {
         this.account = account;
-        this.changeType = changeType;
         this.category = category;
         this.amount = amount;
         this.dateTime = dateTime;
@@ -61,17 +55,15 @@ public class AccountChange {
         this.tags = new HashSet<>(tags);
     }
 
-    public AccountChange(Long id,
-                         Account account,
-                         AccountChangeType changeType,
-                         AccountChangeCategory category,
-                         Long amount,
-                         LocalDateTime dateTime,
-                         String place,
-                         String comment) {
+    public Change(Long id,
+                  Account account,
+                  Category category,
+                  Long amount,
+                  LocalDateTime dateTime,
+                  String place,
+                  String comment) {
         this.id = id;
         this.account = account;
-        this.changeType = changeType;
         this.category = category;
         this.amount = amount;
         this.dateTime = dateTime;
@@ -87,20 +79,12 @@ public class AccountChange {
         this.id = id;
     }
 
-    public AccountChangeCategory getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(AccountChangeCategory category) {
+    public void setCategory(Category category) {
         this.category = category;
-    }
-
-    public AccountChangeType getChangeType() {
-        return changeType;
-    }
-
-    public void setChangeType(AccountChangeType changeType) {
-        this.changeType = changeType;
     }
 
     public Long getAmount() {
@@ -143,25 +127,25 @@ public class AccountChange {
         this.account = account;
     }
 
-    public Set<AccountChangeTag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(Set<AccountChangeTag> tags) {
+    public void setTags(Set<Tag> tags) {
         if (tags == null) {
             throw new NullPointerException();
         }
         this.tags = new HashSet<>(tags);
     }
 
-    public void addTag(AccountChangeTag tag) {
+    public void addTag(Tag tag) {
         if (tags == null) {
             throw new NullPointerException();
         }
         tags.add(tag);
     }
 
-    public void removeTag(AccountChangeTag tag) {
+    public void removeTag(Tag tag) {
         if (tags == null) {
             throw new NullPointerException();
         }
@@ -173,7 +157,7 @@ public class AccountChange {
         return "AccountChange{" +
                 "id=" + id +
                 ", account=" + account +
-                ", changeType=" + changeType +
+//                ", changeType=" + changeType +
                 ", category=" + category +
                 ", amount=" + amount +
                 ", dateTime=" + dateTime +
@@ -186,11 +170,11 @@ public class AccountChange {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AccountChange)) return false;
-        AccountChange that = (AccountChange) o;
+        if (!(o instanceof Change)) return false;
+        Change that = (Change) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(account, that.account)
-                && changeType == that.changeType
+//                && changeType == that.changeType
                 && Objects.equals(category, that.category)
                 && Objects.equals(tags, that.tags)
                 && Objects.equals(amount, that.amount)
@@ -201,7 +185,7 @@ public class AccountChange {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, account, changeType, category, tags, amount, dateTime, place, comment);
+        return Objects.hash(id, account, category, tags, amount, dateTime, place, comment);
     }
 
 }
