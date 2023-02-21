@@ -60,7 +60,7 @@ public class CategoryController extends BaseController {
         Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
                 categoryService.addCategory(categoryRequest, ownerId),
-                HttpStatus.OK
+                HttpStatus.CREATED
         );
     }
 
