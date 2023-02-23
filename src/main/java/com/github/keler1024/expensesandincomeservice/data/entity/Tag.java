@@ -3,6 +3,7 @@ package com.github.keler1024.expensesandincomeservice.data.entity;
 import javax.persistence.*;
 import java.util.Objects;
 
+
 @Entity
 @Table
 public class Tag {

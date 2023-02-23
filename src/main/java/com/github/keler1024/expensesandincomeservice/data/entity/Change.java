@@ -4,8 +4,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//TODO Try to add null checks to keep it null safe
-//TODO add tags
+
 @Entity
 @Table
 public class Change {
