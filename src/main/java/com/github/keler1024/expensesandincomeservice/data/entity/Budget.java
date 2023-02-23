@@ -2,6 +2,7 @@ package com.github.keler1024.expensesandincomeservice.data.entity;
 
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -16,17 +17,19 @@ public class Budget {
     @Column(name = "amount", nullable = false)
     private Long amount;
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    private LocalDate startDate;
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
+    private LocalDate endDate;
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
     @ManyToOne
     @JoinColumn(name = "tag_id")
     private Tag tag;
+    @Column(name = "owner_id")
+    private Long ownerId;
 
-    public Budget(Long id, Long amount, LocalDateTime startDate, LocalDateTime endDate, Category category, Tag tag) {
+    public Budget(Long id, Long amount, LocalDate startDate, LocalDate endDate, Category category, Tag tag) {
         this.id = id;
         this.amount = amount;
         this.startDate = startDate;
@@ -53,19 +56,19 @@ public class Budget {
         this.amount = amount;
     }
 
-    public LocalDateTime getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
