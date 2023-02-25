@@ -12,10 +12,13 @@ import java.util.List;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    @Query("SELECT b FROM Budget b WHERE b.start_date <= :date and b.end_date >= :date")
-    List<Budget> findByDateBetweenStartDateAndEndDate(@NonNull @Param("date") LocalDate date);
+    @Query("SELECT b FROM Budget b WHERE b.owner_id = :ownerId and b.end_date >= :date")
+    List<Budget> findByOwnerIdAndEndDateAfter(
+            @NonNull @Param("ownerId") Long ownerId,
+            @NonNull @Param("date") LocalDate date
+    );
 
-    List<Budget> findByEndDateBefore(@NonNull LocalDate endDate);
+    List<Budget> findByOwnerIdAndEndDateBefore(@NonNull Long ownerId, @NonNull LocalDate endDate);
 
     List<Budget> findByOwnerId(@NonNull Long ownerId);
 }

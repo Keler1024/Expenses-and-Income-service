@@ -16,9 +16,9 @@ public class Budget {
     private Long id;
     @Column(name = "amount", nullable = false)
     private Long amount;
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date")
     private LocalDate startDate;
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private LocalDate endDate;
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -29,13 +29,20 @@ public class Budget {
     @Column(name = "owner_id")
     private Long ownerId;
 
-    public Budget(Long id, Long amount, LocalDate startDate, LocalDate endDate, Category category, Tag tag) {
+    public Budget(Long id,
+                  Long amount,
+                  LocalDate startDate,
+                  LocalDate endDate,
+                  Category category,
+                  Tag tag,
+                  Long ownerId) {
         this.id = id;
         this.amount = amount;
         this.startDate = startDate;
         this.endDate = endDate;
         this.category = category;
         this.tag = tag;
+        this.ownerId = ownerId;
     }
 
     public Budget() {}
@@ -86,6 +93,14 @@ public class Budget {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override

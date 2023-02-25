@@ -33,7 +33,7 @@ public class CategoryService {
         return categoryConverter.createResponses(categoryRepository.findByOwnerIdNull());
     }
 
-    public CategoryResponse getCategory(Long id) {
+    public CategoryResponse getCategoryById(Long id) {
         if (id == null || id < 0) {
             throw new IllegalArgumentException();
         }
@@ -63,7 +63,7 @@ public class CategoryService {
         return categoryConverter.convertToResponse(categoryRepository.save(category));
     }
 
-    public void deleteCategory(Long id) {
+    public void deleteCategoryById(Long id) {
         if (id == null || id < 0) {
             throw new IllegalArgumentException();
         }
