@@ -5,20 +5,21 @@ import java.util.Objects;
 
 public class BudgetResponse {
     private Long id;
-    private Long amount;
+    private Long size;
+    private Long spent;
     private LocalDate startDate;
     private LocalDate endDate;
     private Long categoryId;
     private Long tagId;
 
     public BudgetResponse(Long id,
-                          Long amount,
+                          Long size,
                           LocalDate startDate,
                           LocalDate endDate,
                           Long categoryId,
                           Long tagId) {
         this.id = id;
-        this.amount = amount;
+        this.size = size;
         this.startDate = startDate;
         this.endDate = endDate;
         this.categoryId = categoryId;
@@ -35,12 +36,20 @@ public class BudgetResponse {
         this.id = id;
     }
 
-    public Long getAmount() {
-        return amount;
+    public Long getSize() {
+        return size;
     }
 
-    public void setAmount(Long amount) {
-        this.amount = amount;
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
+    public Long getSpent() {
+        return spent;
+    }
+
+    public void setSpent(Long spent) {
+        this.spent = spent;
     }
 
     public LocalDate getStartDate() {
@@ -81,7 +90,7 @@ public class BudgetResponse {
         if (!(o instanceof BudgetResponse)) return false;
         BudgetResponse that = (BudgetResponse) o;
         return Objects.equals(getId(), that.getId())
-                && Objects.equals(getAmount(), that.getAmount())
+                && Objects.equals(getSize(), that.getSize())
                 && Objects.equals(getStartDate(), that.getStartDate())
                 && Objects.equals(getEndDate(), that.getEndDate())
                 && Objects.equals(getCategoryId(), that.getCategoryId())
@@ -92,7 +101,7 @@ public class BudgetResponse {
     public int hashCode() {
         return Objects.hash(
                 getId(),
-                getAmount(),
+                getSize(),
                 getStartDate(),
                 getEndDate(),
                 getCategoryId(),

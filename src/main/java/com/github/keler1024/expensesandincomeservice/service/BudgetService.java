@@ -1,19 +1,25 @@
 package com.github.keler1024.expensesandincomeservice.service;
 
 import com.github.keler1024.expensesandincomeservice.data.entity.Budget;
+import com.github.keler1024.expensesandincomeservice.data.entity.Change;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
 import com.github.keler1024.expensesandincomeservice.model.converter.BudgetConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
 import com.github.keler1024.expensesandincomeservice.repository.BudgetRepository;
 import com.github.keler1024.expensesandincomeservice.repository.CategoryRepository;
+import com.github.keler1024.expensesandincomeservice.repository.ChangeRepository;
 import com.github.keler1024.expensesandincomeservice.repository.TagRepository;
+import com.github.keler1024.expensesandincomeservice.repository.specification.SpecificationOnConjunctionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class BudgetService {
@@ -21,54 +27,75 @@ public class BudgetService {
     private final BudgetConverter budgetConverter;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
+    private final ChangeRepository changeRepository;
+    private final Function<Budget, BudgetResponse> budgetMapper;
 
     @Autowired
     public BudgetService(BudgetRepository budgetRepository,
                          BudgetConverter budgetConverter,
                          CategoryRepository categoryRepository,
-                         TagRepository tagRepository) {
+                         TagRepository tagRepository,
+                         ChangeRepository changeRepository) {
         this.budgetRepository = budgetRepository;
         this.budgetConverter = budgetConverter;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
+        this.changeRepository = changeRepository;
+        this.budgetMapper = budget -> {
+            BudgetResponse response = this.budgetConverter.convertToResponse(budget);
+            response.setSpent(calculateBudgetSpending(budget));
+            return response;
+        };
     }
 
     public List<BudgetResponse> getAllBudgetsByOwnerId(Long ownerId) {
         if (ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
         }
-        return budgetConverter.createResponses(budgetRepository.findByOwnerId(ownerId));
+        List<Budget> budgetList = budgetRepository.findByOwnerId(ownerId);
+
+        return budgetList.stream().map(budgetMapper).collect(Collectors.toList());
     }
 
-    public List<BudgetResponse> getPastBudgetsByOwnerId(Long ownerId, LocalDate date) {
-        if (ownerId == null || ownerId < 0 || date == null) {
+    public List<BudgetResponse> getBudgetsByOwnerId(Long ownerId, String relevance, LocalDate date) {
+        if (ownerId == null || ownerId < 0 || relevance == null || (!relevance.equals("all") && date == null)) {
             throw new IllegalArgumentException();
         }
-        return budgetConverter.createResponses(budgetRepository.findByOwnerIdAndEndDateBefore(ownerId, date));
-    }
-
-    public List<BudgetResponse> getCurrentBudgetsByOwnerId(Long ownerId, LocalDate date) {
-        if (ownerId == null || ownerId < 0 || date == null) {
-            throw new IllegalArgumentException();
+        List<Budget> budgetList;
+        switch (relevance) {
+            case "all":
+                budgetList = budgetRepository.findByOwnerId(ownerId);
+                break;
+            case "current":
+                budgetList = budgetRepository.findByOwnerIdAndEndDateAfter(ownerId, date);
+                break;
+            case "past":
+                budgetList = budgetRepository.findByOwnerIdAndEndDateBefore(ownerId, date);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported relevance parameter value");
         }
-        return budgetConverter.createResponses(budgetRepository.findByOwnerIdAndEndDateAfter(ownerId, date));
+        return budgetList.stream().map(budgetMapper).collect(Collectors.toList());
     }
 
     public BudgetResponse getBudgetById(Long id) {
         if (id == null || id < 0) {
             throw new IllegalArgumentException();
         }
-        return budgetConverter.convertToResponse(
-                budgetRepository.findById(id).orElseThrow(
-                        () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
-                ));
+        Budget budget = budgetRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
+        );
+        BudgetResponse response = budgetConverter.convertToResponse(budget);
+        response.setSpent(calculateBudgetSpending(budget));
+        return response;
     }
 
     public BudgetResponse addBudget(BudgetRequest budgetRequest, Long ownerId) {
         if (budgetRequest == null || ownerId == null) {
             throw new NullPointerException();
         }
-        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null) {
+        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null
+                || budgetRequest.getCategoryId() != null && budgetRequest.getTagId() != null) {
             throw new IllegalArgumentException("Budget request must provide either Category id or Tag id");
         }
         Budget newBudget = budgetConverter.convertToEntity(budgetRequest);
@@ -87,7 +114,10 @@ public class BudgetService {
                     ))
             );
         }
-        return budgetConverter.convertToResponse(budgetRepository.save(newBudget));
+        newBudget = budgetRepository.save(newBudget);
+        BudgetResponse response = budgetConverter.convertToResponse(newBudget);
+        response.setSpent(calculateBudgetSpending(newBudget));
+        return response;
     }
 
     public BudgetResponse updateBudget(BudgetRequest budgetRequest, Long id) {
@@ -100,10 +130,12 @@ public class BudgetService {
         Budget budget = budgetRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
         );
-        budget.setAmount(budgetRequest.getAmount());
+        budget.setSize(budgetRequest.getSize());
         budget.setStartDate(budgetRequest.getStartDate());
         budget.setEndDate(budgetRequest.getEndDate());
-        if (!Objects.equals(budgetRequest.getCategoryId(), budget.getCategory().getId())) {
+        Long categoryId = budget.getCategory() == null ? null : budget.getCategory().getId();
+        Long tagId = budget.getTag() == null ? null : budget.getTag().getId();
+        if (!Objects.equals(budgetRequest.getCategoryId(), categoryId)) {
             if (budgetRequest.getCategoryId() == null) {
                 budget.setCategory(null);
             }
@@ -114,7 +146,7 @@ public class BudgetService {
                 );
             }
         }
-        if (!Objects.equals(budgetRequest.getTagId(), budget.getTag().getId())) {
+        if (!Objects.equals(budgetRequest.getTagId(), tagId)) {
             if (budgetRequest.getTagId() == null) {
                 budget.setTag(null);
             }
@@ -125,7 +157,10 @@ public class BudgetService {
                 );
             }
         }
-        return budgetConverter.convertToResponse(budgetRepository.save(budget));
+        budget = budgetRepository.save(budget);
+        BudgetResponse response = budgetConverter.convertToResponse(budget);
+        response.setSpent(calculateBudgetSpending(budget));
+        return response;
     }
 
     public void deleteBudgetById(Long id) {
@@ -136,6 +171,23 @@ public class BudgetService {
             throw new ResourceNotFoundException(String.format("Budget with id %d not found", id));
         }
         budgetRepository.deleteById(id);
+    }
+
+    private Long calculateBudgetSpending(Budget budget) {
+        SpecificationOnConjunctionBuilder<Change> specificationBuilder = new SpecificationOnConjunctionBuilder<>();
+        specificationBuilder.nestedEqual(List.of("account", "ownerId"), budget.getOwnerId());
+        if (budget.getCategory() != null) {
+            specificationBuilder.nestedEqual(List.of("category", "id"), budget.getCategory().getId());
+        }
+        if (budget.getTag() != null) {
+            specificationBuilder.containsTag(budget.getTag());
+        }
+        if (budget.getStartDate() != null && budget.getEndDate() != null) {
+            specificationBuilder.between("dateTime",
+                    budget.getStartDate().atStartOfDay(), budget.getEndDate().atStartOfDay());
+        }
+        List<Change> changeList = changeRepository.findAll(specificationBuilder.build());
+        return changeList.stream().mapToLong(Change::getAmount).sum();
     }
 
 }

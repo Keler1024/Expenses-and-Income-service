@@ -11,5 +11,4 @@ import java.util.List;
 @Repository
 public interface ChangeRepository extends JpaRepository<Change, Long>, JpaSpecificationExecutor<Change> {
     List<Change> findByAccount_Id(@NonNull Long id);
-
 }

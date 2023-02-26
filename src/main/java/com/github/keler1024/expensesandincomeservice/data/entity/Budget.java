@@ -3,7 +3,6 @@ package com.github.keler1024.expensesandincomeservice.data.entity;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -14,30 +13,30 @@ public class Budget {
     @SequenceGenerator(name = "budget_sequence_generator", sequenceName = "budget_sequence", allocationSize = 1)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Column(name = "amount", nullable = false)
-    private Long amount;
+    @Column(name = "size", nullable = false)
+    private Long size;
     @Column(name = "start_date")
     private LocalDate startDate;
     @Column(name = "end_date")
     private LocalDate endDate;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tag_id")
     private Tag tag;
     @Column(name = "owner_id")
     private Long ownerId;
 
     public Budget(Long id,
-                  Long amount,
+                  Long size,
                   LocalDate startDate,
                   LocalDate endDate,
                   Category category,
                   Tag tag,
                   Long ownerId) {
         this.id = id;
-        this.amount = amount;
+        this.size = size;
         this.startDate = startDate;
         this.endDate = endDate;
         this.category = category;
@@ -55,12 +54,12 @@ public class Budget {
         this.id = id;
     }
 
-    public Long getAmount() {
-        return amount;
+    public Long getSize() {
+        return size;
     }
 
-    public void setAmount(Long amount) {
-        this.amount = amount;
+    public void setSize(Long size) {
+        this.size = size;
     }
 
     public LocalDate getStartDate() {
@@ -107,7 +106,7 @@ public class Budget {
     public String toString() {
         return "Budget{" +
                 "id=" + id +
-                ", amount=" + amount +
+                ", amount=" + size +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", category=" + category +
@@ -121,7 +120,7 @@ public class Budget {
         if (!(o instanceof Budget)) return false;
         Budget budget = (Budget) o;
         return Objects.equals(getId(), budget.getId())
-                && Objects.equals(getAmount(), budget.getAmount())
+                && Objects.equals(getSize(), budget.getSize())
                 && Objects.equals(getStartDate(), budget.getStartDate())
                 && Objects.equals(getEndDate(), budget.getEndDate())
                 && Objects.equals(getCategory(), budget.getCategory())
@@ -130,6 +129,6 @@ public class Budget {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getAmount(), getStartDate(), getEndDate(), getCategory(), getTag());
+        return Objects.hash(getId(), getSize(), getStartDate(), getEndDate(), getCategory(), getTag());
     }
 }

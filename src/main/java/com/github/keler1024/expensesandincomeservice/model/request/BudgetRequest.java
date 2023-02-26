@@ -4,18 +4,18 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class BudgetRequest {
-    private Long amount;
+    private Long size;
     private LocalDate startDate;
     private LocalDate endDate;
     private Long categoryId;
     private Long tagId;
 
-    public BudgetRequest(Long amount,
+    public BudgetRequest(Long size,
                          LocalDate startDate,
                          LocalDate endDate,
                          Long categoryId,
                          Long tagId) {
-        this.amount = amount;
+        this.size = size;
         this.startDate = startDate;
         this.endDate = endDate;
         this.categoryId = categoryId;
@@ -24,12 +24,12 @@ public class BudgetRequest {
 
     public BudgetRequest() {}
 
-    public Long getAmount() {
-        return amount;
+    public Long getSize() {
+        return size;
     }
 
-    public void setAmount(Long amount) {
-        this.amount = amount;
+    public void setSize(Long size) {
+        this.size = size;
     }
 
     public LocalDate getStartDate() {
@@ -69,7 +69,7 @@ public class BudgetRequest {
         if (this == o) return true;
         if (!(o instanceof BudgetRequest)) return false;
         BudgetRequest that = (BudgetRequest) o;
-        return Objects.equals(getAmount(), that.getAmount())
+        return Objects.equals(getSize(), that.getSize())
                 && Objects.equals(getStartDate(), that.getStartDate())
                 && Objects.equals(getEndDate(), that.getEndDate())
                 && Objects.equals(getCategoryId(), that.getCategoryId())
@@ -79,7 +79,7 @@ public class BudgetRequest {
     @Override
     public int hashCode() {
         return Objects.hash(
-                getAmount(),
+                getSize(),
                 getStartDate(),
                 getEndDate(),
                 getCategoryId(),
@@ -89,7 +89,7 @@ public class BudgetRequest {
     @Override
     public String toString() {
         return "BudgetRequest{" +
-                "amount=" + amount +
+                "amount=" + size +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", categoryId=" + categoryId +

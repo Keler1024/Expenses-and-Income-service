@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    @Query("SELECT b FROM Budget b WHERE b.owner_id = :ownerId and b.end_date >= :date")
+    @Query("SELECT b FROM Budget b WHERE b.ownerId = :ownerId and b.endDate >= :date")
     List<Budget> findByOwnerIdAndEndDateAfter(
             @NonNull @Param("ownerId") Long ownerId,
             @NonNull @Param("date") LocalDate date
