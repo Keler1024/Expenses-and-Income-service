@@ -5,7 +5,7 @@ import com.github.keler1024.expensesandincomeservice.data.enums.Currency;
 import javax.persistence.*;
 import java.util.Objects;
 
-//TODO Try to add null checks to keep it null safe
+
 @Entity
 @Table
 public class Account {

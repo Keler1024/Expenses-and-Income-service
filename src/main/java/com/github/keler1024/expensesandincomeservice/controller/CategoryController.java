@@ -4,7 +4,6 @@ import com.github.keler1024.expensesandincomeservice.data.entity.Category;
 import com.github.keler1024.expensesandincomeservice.model.request.CategoryRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.CategoryResponse;
 import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
-import com.github.keler1024.expensesandincomeservice.security.JWTUtil;
 import com.github.keler1024.expensesandincomeservice.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path="api/v1/category")
@@ -46,7 +44,7 @@ public class CategoryController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        CategoryResponse result = categoryService.getCategory(id);
+        CategoryResponse result = categoryService.getCategoryById(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -80,7 +78,7 @@ public class CategoryController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        categoryService.deleteCategory(id);
+        categoryService.deleteCategoryById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

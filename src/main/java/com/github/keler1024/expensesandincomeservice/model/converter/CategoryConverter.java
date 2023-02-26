@@ -5,7 +5,6 @@ import com.github.keler1024.expensesandincomeservice.model.request.CategoryReque
 import com.github.keler1024.expensesandincomeservice.model.response.CategoryResponse;
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class CategoryConverter extends RequestToEntityToResponseConverter<CategoryRequest, Category, CategoryResponse>{
     public CategoryConverter() {

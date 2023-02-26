@@ -76,6 +76,16 @@ public class SpecificationOnConjunctionBuilder<E> {
         return this;
     }
 
+    public SpecificationOnConjunctionBuilder<E> containsTag(Tag tag) {
+        specification = specification.and(new Specification<E>() {
+            @Override
+            public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+                return criteriaBuilder.isMember(tag, root.get("tags"));
+            }
+        });
+        return this;
+    }
+
     public <Y extends Comparable<? super Y>> SpecificationOnConjunctionBuilder<E> lessThan(String key, Y value) {
         specification = specification.and(new Specification<E>() {
             @Override
