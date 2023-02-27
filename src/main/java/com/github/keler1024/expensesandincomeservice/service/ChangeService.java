@@ -1,5 +1,6 @@
 package com.github.keler1024.expensesandincomeservice.service;
 
+import com.github.keler1024.expensesandincomeservice.data.entity.Account;
 import com.github.keler1024.expensesandincomeservice.data.entity.Change;
 import com.github.keler1024.expensesandincomeservice.data.entity.Category;
 import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
@@ -117,8 +118,7 @@ public class ChangeService {
                 ));
         change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
         change.getAccount().setMoney(change.getAccount().getMoney() + change.getAmount());
-        ChangeResponse result = changeConverter.convertToResponse(changeRepository.save(change));
-        return result;
+        return changeConverter.convertToResponse(changeRepository.save(change));
     }
 
     public ChangeResponse updateAccountChange(ChangeRequest changeRequest, Long id) {
@@ -130,6 +130,7 @@ public class ChangeService {
                         String.format("Account change with id %d not found", id)
                 )
         );
+        Long oldAmount = change.getAmount();
         change.setAmount(changeRequest.getAmount());
         change.setDateTime(changeRequest.getDateTime());
         change.setPlace(changeRequest.getPlace());
@@ -143,6 +144,7 @@ public class ChangeService {
             change.setCategory(newCategory);
         }
         change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
+        change.getAccount().setMoney(change.getAccount().getMoney() - oldAmount + change.getAmount());
         return changeConverter.convertToResponse(changeRepository.save(change));
     }
 
@@ -150,9 +152,14 @@ public class ChangeService {
         if (id == null || id < 0) {
             throw new IllegalArgumentException("Null instead of Account change id provided");
         }
-        if(!changeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Account change with id " + id + " not found in database");
-        }
+        Change change = changeRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(
+                        String.format("Account change with id %d not found", id)
+                )
+        );
+        Account account = change.getAccount();
+        account.setMoney(account.getMoney() - change.getAmount());
+        accountRepository.save(account);
         changeRepository.deleteById(id);
     }
 
