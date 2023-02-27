@@ -11,21 +11,26 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 
 @Component
-public class TagConverter extends RequestToEntityToResponseConverter<TagRequest, Tag, TagResponse> {
-    public TagConverter() {
-        super(TagConverter::convertFromRequest, TagConverter::convertFromEntity);
-    }
+public class TagConverter implements IRequestToEntityToResponseConverter<TagRequest, Tag, TagResponse> {
 
-    private static Tag convertFromRequest(TagRequest tagRequest) {
+    @Override
+    public Tag convertToEntity(TagRequest request) {
+        if (request == null) {
+            throw new NullPointerException();
+        }
         Tag tag = new Tag();
-        tag.setName(tagRequest.getName());
+        tag.setName(request.getName());
         return tag;
     }
 
-    private static TagResponse convertFromEntity(Tag tag) {
+    @Override
+    public TagResponse convertToResponse(Tag entity) {
+        if (entity == null) {
+            throw new NullPointerException();
+        }
         return new TagResponse(
-                tag.getId(),
-                tag.getName()
+                entity.getId(),
+                entity.getName()
         );
     }
 }

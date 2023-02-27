@@ -51,7 +51,7 @@ public class Change {
         this.dateTime = dateTime;
         this.place = place;
         this.comment = comment;
-        this.tags = new HashSet<>(tags);
+        this.tags = Set.copyOf(tags);
     }
 
     public Change(Long id,
@@ -60,7 +60,8 @@ public class Change {
                   Long amount,
                   LocalDateTime dateTime,
                   String place,
-                  String comment) {
+                  String comment,
+                  Collection<Tag> tags) {
         this.id = id;
         this.account = account;
         this.category = category;
@@ -68,6 +69,7 @@ public class Change {
         this.dateTime = dateTime;
         this.place = place;
         this.comment = comment;
+        this.tags = Set.copyOf(tags);
     }
 
     public Long getId() {

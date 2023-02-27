@@ -6,21 +6,27 @@ import com.github.keler1024.expensesandincomeservice.model.response.CategoryResp
 import org.springframework.stereotype.Component;
 
 @Component
-public class CategoryConverter extends RequestToEntityToResponseConverter<CategoryRequest, Category, CategoryResponse>{
-    public CategoryConverter() {
-        super(CategoryConverter::convertFromRequest, CategoryConverter::convertFromEntity);
-    }
+public class CategoryConverter
+        implements IRequestToEntityToResponseConverter<CategoryRequest, Category, CategoryResponse> {
 
-    private static Category convertFromRequest(CategoryRequest categoryRequest) {
+    @Override
+    public Category convertToEntity(CategoryRequest request) {
+        if (request == null) {
+            throw new NullPointerException();
+        }
         Category category = new Category();
-        category.setName(categoryRequest.getName());
+        category.setName(request.getName());
         return category;
     }
 
-    private static CategoryResponse convertFromEntity(Category category) {
+    @Override
+    public CategoryResponse convertToResponse(Category entity) {
+        if (entity == null) {
+            throw new NullPointerException();
+        }
         return new CategoryResponse(
-                category.getId(),
-                category.getName()
+                entity.getId(),
+                entity.getName()
         );
     }
 }

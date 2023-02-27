@@ -7,26 +7,30 @@ import com.github.keler1024.expensesandincomeservice.model.response.AccountRespo
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccountConverter extends RequestToEntityToResponseConverter<AccountRequest, Account, AccountResponse>{
+public class AccountConverter implements IRequestToEntityToResponseConverter<AccountRequest, Account, AccountResponse>{
 
-    public AccountConverter() {
-        super(AccountConverter::convertFromRequest, AccountConverter::convertFromEntity);
-    }
-
-    private static Account convertFromRequest(AccountRequest accountRequest) {
+    @Override
+    public Account convertToEntity(AccountRequest request) {
+        if (request == null) {
+            throw new NullPointerException();
+        }
         Account account = new Account();
-        account.setName(accountRequest.getName());
-        account.setMoney(accountRequest.getMoney());
-        account.setCurrency(Currency.of(accountRequest.getCurrency()));
+        account.setName(request.getName());
+        account.setMoney(request.getMoney());
+        account.setCurrency(Currency.of(request.getCurrency()));
         return account;
     }
 
-    private static AccountResponse convertFromEntity(Account account) {
+    @Override
+    public AccountResponse convertToResponse(Account entity) {
+        if (entity == null) {
+            throw new NullPointerException();
+        }
         return new AccountResponse(
-                account.getId(),
-                account.getMoney(),
-                account.getName(),
-                account.getCurrency().getCurrencyCode()
+                entity.getId(),
+                entity.getMoney(),
+                entity.getName(),
+                entity.getCurrency().getCurrencyCode()
         );
     }
 }
