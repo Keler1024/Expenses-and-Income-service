@@ -3,7 +3,7 @@ package com.github.keler1024.expensesandincomeservice.controller;
 import com.github.keler1024.expensesandincomeservice.data.entity.Category;
 import com.github.keler1024.expensesandincomeservice.model.request.CategoryRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.CategoryResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path="api/v1/category")
-public class CategoryController extends BaseController {
+public class CategoryController {
     private final CategoryService categoryService;
 
     @Autowired
@@ -24,20 +24,20 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getOwnerCategories(
+    public ResponseEntity<List<CategoryResponse>> getByOwnerId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (!AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (!AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         List<CategoryResponse> result = categoryService.getDefaultCategories();
         result.addAll(categoryService.getByOwnerId(ownerId));
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long id) {
+    public ResponseEntity<CategoryResponse> getById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -46,13 +46,13 @@ public class CategoryController extends BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> addCategory(
+    public ResponseEntity<CategoryResponse> add(
             @RequestBody CategoryRequest categoryRequest,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (categoryRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (categoryRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
                 categoryService.add(categoryRequest, ownerId),
                 HttpStatus.CREATED
@@ -60,7 +60,7 @@ public class CategoryController extends BaseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponse> updateCategory(
+    public ResponseEntity<CategoryResponse> update(
             @RequestBody CategoryRequest categoryRequest,
             @PathVariable Long id
     ) {
@@ -71,7 +71,7 @@ public class CategoryController extends BaseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Category> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<Category> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

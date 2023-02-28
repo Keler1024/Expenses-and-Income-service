@@ -3,7 +3,7 @@ package com.github.keler1024.expensesandincomeservice.controller;
 import com.github.keler1024.expensesandincomeservice.data.entity.Account;
 import com.github.keler1024.expensesandincomeservice.model.request.AccountRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.AccountResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path="api/v1/account")
-public class AccountController extends BaseController {
+public class AccountController {
     private final AccountService accountService;
 
     @Autowired
@@ -24,7 +24,7 @@ public class AccountController extends BaseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponse> getAccount(@PathVariable Long id) {
+    public ResponseEntity<AccountResponse> getById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -33,23 +33,23 @@ public class AccountController extends BaseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AccountResponse>> getOwnerAccounts(
+    public ResponseEntity<List<AccountResponse>> getByOwnerId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (!AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (!AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         List<AccountResponse> result = accountService.getByOwnerId(ownerId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> addAccount(@RequestBody AccountRequest accountRequest,
+    public ResponseEntity<AccountResponse> add(@RequestBody AccountRequest accountRequest,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (accountRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (accountRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
                 accountService.add(accountRequest, ownerId),
                 HttpStatus.CREATED
@@ -57,12 +57,12 @@ public class AccountController extends BaseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AccountResponse> updateAccount(
+    public ResponseEntity<AccountResponse> update(
             @RequestBody AccountRequest accountRequest,
             @PathVariable Long id,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         if (accountRequest == null || id == null || id < 0
-                || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+                || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(
@@ -72,7 +72,7 @@ public class AccountController extends BaseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Account> deleteAccount(@PathVariable Long id) {
+    public ResponseEntity<Account> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

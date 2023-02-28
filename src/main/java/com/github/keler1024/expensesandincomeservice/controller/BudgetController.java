@@ -2,7 +2,7 @@ package com.github.keler1024.expensesandincomeservice.controller;
 
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,7 +17,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping(path="api/v1/budget")
-public class BudgetController extends BaseController {
+public class BudgetController {
     private final BudgetService budgetService;
     private static final Set<String> relevanceValues = Set.of("all", "current", "past");
 
@@ -27,16 +27,16 @@ public class BudgetController extends BaseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BudgetResponse>> getOwnerBudgets(
+    public ResponseEntity<List<BudgetResponse>> getByOwnerId(
             @RequestParam("relevance") String relevance,
             @RequestParam(value = "date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (!relevanceValues.contains(relevance) || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (!relevanceValues.contains(relevance) || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return ResponseEntity.ok(budgetService.getByOwnerId(ownerId, relevance, date));
     }
 
@@ -53,10 +53,10 @@ public class BudgetController extends BaseController {
             @RequestBody BudgetRequest budgetRequest,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (budgetRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (budgetRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(budgetService.add(budgetRequest, ownerId), HttpStatus.CREATED);
     }
 
@@ -71,7 +71,7 @@ public class BudgetController extends BaseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BudgetResponse> delete(@PathVariable Long id) {
+    public ResponseEntity<BudgetResponse> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

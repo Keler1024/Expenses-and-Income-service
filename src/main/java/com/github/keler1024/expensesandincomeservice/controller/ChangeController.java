@@ -32,7 +32,6 @@ public class ChangeController {
             @RequestParam(name = "comparison", required = false) String comparison,
             @RequestParam(name = "categoryId", required = false) Long categoryId,
             @RequestParam(name = "place", required = false) String place,
-//            @RequestParam(name = "comment", required = false) String comment,
             @RequestParam(name = "startDate", required = false) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) LocalDateTime endDate,
             @RequestParam(name = "tags", required = false) Set<Long> tags) {
@@ -45,7 +44,7 @@ public class ChangeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChangeResponse> getChange(@PathVariable Long id) {
+    public ResponseEntity<ChangeResponse> getById(@PathVariable Long id) {
         if(id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -54,7 +53,7 @@ public class ChangeController {
     }
 
     @PostMapping
-    public ResponseEntity<ChangeResponse> postChange(@RequestBody ChangeRequest changeRequest) {
+    public ResponseEntity<ChangeResponse> post(@RequestBody ChangeRequest changeRequest) {
         if(changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -62,7 +61,10 @@ public class ChangeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ChangeResponse> updateChange(@RequestBody ChangeRequest changeRequest, @PathVariable Long id) {
+    public ResponseEntity<ChangeResponse> update(
+            @RequestBody ChangeRequest changeRequest,
+            @PathVariable Long id
+    ) {
         if(id == null || id < 0 | changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -70,7 +72,7 @@ public class ChangeController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ChangeResponse> deleteChange(@PathVariable("id") Long id) {
+    public ResponseEntity<ChangeResponse> deleteById(@PathVariable("id") Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
