@@ -67,7 +67,7 @@ public class TagController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        tagService.delete(id);
+        tagService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

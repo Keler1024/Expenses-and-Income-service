@@ -32,10 +32,7 @@ public class CategoryController extends BaseController {
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
         List<CategoryResponse> result = categoryService.getDefaultCategories();
-        result.addAll(categoryService.getCategoriesByOwnerId(ownerId));
-//        if (result.isEmpty()) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
+        result.addAll(categoryService.getByOwnerId(ownerId));
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -44,7 +41,7 @@ public class CategoryController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        CategoryResponse result = categoryService.getCategoryById(id);
+        CategoryResponse result = categoryService.getById(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -57,7 +54,7 @@ public class CategoryController extends BaseController {
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                categoryService.addCategory(categoryRequest, ownerId),
+                categoryService.add(categoryRequest, ownerId),
                 HttpStatus.CREATED
         );
     }
@@ -70,7 +67,7 @@ public class CategoryController extends BaseController {
         if (categoryRequest == null || id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(categoryService.updateCategory(categoryRequest, id), HttpStatus.OK);
+        return new ResponseEntity<>(categoryService.update(categoryRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -78,7 +75,7 @@ public class CategoryController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        categoryService.deleteCategoryById(id);
+        categoryService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

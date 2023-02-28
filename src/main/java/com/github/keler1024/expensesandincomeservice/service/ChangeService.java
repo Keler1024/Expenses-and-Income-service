@@ -22,15 +22,11 @@ import java.util.Set;
 
 
 @Service
-public class ChangeService {
+public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResponse, ChangeRepository>{
 
-    private final ChangeRepository changeRepository;
-    private final ChangeConverter changeConverter;
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
-
-    private static final List<String> comparisons = List.of("less", "more");
 
     @Autowired
     public ChangeService(
@@ -40,14 +36,13 @@ public class ChangeService {
             CategoryRepository categoryRepository,
             TagRepository tagRepository
     ) {
-        this.changeRepository = changeRepository;
-        this.changeConverter = changeConverter;
+        super(changeRepository, changeConverter);
         this.accountRepository = accountRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
     }
 
-    public List<ChangeResponse> getAllAccountChanges(
+    public List<ChangeResponse> getAllChanges(
             Long accountId,
             Long amount,
             String comparison,
@@ -86,24 +81,14 @@ public class ChangeService {
             Set<Tag> tags = tagRepository.findByIdIn(tagIds);
             specificationBuilder.containsAllTags(tags);
         }
-        return changeConverter.createResponses(changeRepository.findAll(specificationBuilder.build()));
+        return converter.createResponses(entityRepository.findAll(specificationBuilder.build()));
     }
 
-    public ChangeResponse getAccountChange(Long id) {
-        if (id == null || id < 0) {
-            throw new IllegalArgumentException();
-        }
-        return changeConverter.convertToResponse(
-                changeRepository.findById(id).orElseThrow(
-                        () -> new ResourceNotFoundException(String.format("Account change with id %d not found", id)))
-        );
-    }
-
-    public ChangeResponse addChange(ChangeRequest changeRequest) {
+    public ChangeResponse add(ChangeRequest changeRequest) {
         if (changeRequest == null) {
             throw new IllegalArgumentException();
         }
-        Change change = changeConverter.convertToEntity(changeRequest);
+        Change change = converter.convertToEntity(changeRequest);
         change.setAccount(accountRepository.findById(changeRequest.getAccountId())
                 .orElseThrow(
                         () -> new ResourceNotFoundException(
@@ -118,14 +103,15 @@ public class ChangeService {
                 ));
         change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
         change.getAccount().setMoney(change.getAccount().getMoney() + change.getAmount());
-        return changeConverter.convertToResponse(changeRepository.save(change));
+        return converter.convertToResponse(entityRepository.save(change));
     }
 
-    public ChangeResponse updateAccountChange(ChangeRequest changeRequest, Long id) {
+    @Override
+    public ChangeResponse update(ChangeRequest changeRequest, Long id) {
         if (id == null || id < 0 || changeRequest == null) {
             throw new IllegalArgumentException();
         }
-        Change change = changeRepository.findById(id).orElseThrow(
+        Change change = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(
                         String.format("Account change with id %d not found", id)
                 )
@@ -145,14 +131,15 @@ public class ChangeService {
         }
         change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
         change.getAccount().setMoney(change.getAccount().getMoney() - oldAmount + change.getAmount());
-        return changeConverter.convertToResponse(changeRepository.save(change));
+        return converter.convertToResponse(entityRepository.save(change));
     }
 
-    public void deleteAccountChange(Long id) {
+    @Override
+    public void deleteById(Long id) {
         if (id == null || id < 0) {
             throw new IllegalArgumentException("Null instead of Account change id provided");
         }
-        Change change = changeRepository.findById(id).orElseThrow(
+        Change change = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(
                         String.format("Account change with id %d not found", id)
                 )
@@ -160,13 +147,6 @@ public class ChangeService {
         Account account = change.getAccount();
         account.setMoney(account.getMoney() - change.getAmount());
         accountRepository.save(account);
-        changeRepository.deleteById(id);
-    }
-
-    public List<ChangeResponse> getByAccountId(Long accountId) {
-        if (accountId == null) {
-            throw new IllegalArgumentException("Null instead of Account change id provided");
-        }
-        return changeConverter.createResponses(changeRepository.findByAccount_Id(accountId));
+        entityRepository.deleteById(id);
     }
 }

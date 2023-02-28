@@ -1,6 +1,5 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
-import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
 import com.github.keler1024.expensesandincomeservice.model.request.ChangeRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.ChangeResponse;
 import com.github.keler1024.expensesandincomeservice.service.ChangeService;
@@ -40,7 +39,7 @@ public class ChangeController {
         if (accountId == null || !datesAreValid(startDate, endDate)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        List<ChangeResponse> changeList = changeService.getAllAccountChanges(
+        List<ChangeResponse> changeList = changeService.getAllChanges(
                 accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
         return new ResponseEntity<>(changeList, HttpStatus.OK);
     }
@@ -50,7 +49,7 @@ public class ChangeController {
         if(id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        ChangeResponse changeResponse = changeService.getAccountChange(id);
+        ChangeResponse changeResponse = changeService.getById(id);
         return new ResponseEntity<>(changeResponse, HttpStatus.OK);
     }
 
@@ -59,7 +58,7 @@ public class ChangeController {
         if(changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(changeService.addChange(changeRequest), HttpStatus.CREATED);
+        return new ResponseEntity<>(changeService.add(changeRequest), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -67,7 +66,7 @@ public class ChangeController {
         if(id == null || id < 0 | changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(changeService.updateAccountChange(changeRequest, id), HttpStatus.OK);
+        return new ResponseEntity<>(changeService.update(changeRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -75,7 +74,7 @@ public class ChangeController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        changeService.deleteAccountChange(id);
+        changeService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -1,12 +1,9 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.keler1024.expensesandincomeservice.data.entity.Account;
-import com.github.keler1024.expensesandincomeservice.model.converter.AccountConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.AccountRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.AccountResponse;
 import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
-import com.github.keler1024.expensesandincomeservice.security.exception.JWTClaimMissingException;
 import com.github.keler1024.expensesandincomeservice.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path="api/v1/account")
@@ -32,7 +28,7 @@ public class AccountController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        AccountResponse result = accountService.getAccount(id);
+        AccountResponse result = accountService.getById(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -43,7 +39,7 @@ public class AccountController extends BaseController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
-        List<AccountResponse> result = accountService.getAccountsByOwnerId(ownerId);
+        List<AccountResponse> result = accountService.getByOwnerId(ownerId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -55,7 +51,7 @@ public class AccountController extends BaseController {
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                accountService.addAccount(accountRequest, ownerId),
+                accountService.add(accountRequest, ownerId),
                 HttpStatus.CREATED
         );
     }
@@ -69,9 +65,8 @@ public class AccountController extends BaseController {
                 || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                accountService.updateAccount(accountRequest, id),
+                accountService.update(accountRequest, id),
                 HttpStatus.OK
         );
     }
@@ -81,7 +76,7 @@ public class AccountController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        accountService.deleteAccount(id);
+        accountService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

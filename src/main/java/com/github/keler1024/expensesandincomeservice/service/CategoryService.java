@@ -12,64 +12,42 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CategoryService {
-    private final CategoryRepository categoryRepository;
-    private final CategoryConverter categoryConverter;
+public class CategoryService extends BaseService<CategoryRequest, Category, CategoryResponse, CategoryRepository>{
 
     @Autowired
     public CategoryService(CategoryRepository categoryRepository, CategoryConverter categoryConverter) {
-        this.categoryRepository = categoryRepository;
-        this.categoryConverter = categoryConverter;
+        super(categoryRepository, categoryConverter);
     }
 
-    public List<CategoryResponse> getCategoriesByOwnerId(Long ownerId) {
+    public List<CategoryResponse> getByOwnerId(Long ownerId) {
         if (ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
         }
-        return categoryConverter.createResponses(categoryRepository.findByOwnerId(ownerId));
+        return converter.createResponses(entityRepository.findByOwnerId(ownerId));
     }
 
     public List<CategoryResponse> getDefaultCategories() {
-        return categoryConverter.createResponses(categoryRepository.findByOwnerIdNull());
+        return converter.createResponses(entityRepository.findByOwnerIdNull());
     }
 
-    public CategoryResponse getCategoryById(Long id) {
-        if (id == null || id < 0) {
-            throw new IllegalArgumentException();
-        }
-        return categoryConverter.convertToResponse(
-                categoryRepository.findById(id).orElseThrow(
-                        () -> new ResourceNotFoundException(String.format("Category with id %d not found", id))
-                ));
-    }
-
-    public CategoryResponse addCategory(CategoryRequest categoryRequest, Long ownerId) {
+    public CategoryResponse add(CategoryRequest categoryRequest, Long ownerId) {
         if (categoryRequest == null) {
             throw new IllegalArgumentException();
         }
-        Category newCategory = categoryConverter.convertToEntity(categoryRequest);
+        Category newCategory = converter.convertToEntity(categoryRequest);
         newCategory.setOwnerId(ownerId);
-        return categoryConverter.convertToResponse(categoryRepository.save(newCategory));
+        return converter.convertToResponse(entityRepository.save(newCategory));
     }
 
-    public CategoryResponse updateCategory(CategoryRequest categoryRequest, Long id) {
+    @Override
+    public CategoryResponse update(CategoryRequest categoryRequest, Long id) {
         if (id == null || id < 0 || categoryRequest == null) {
             throw new IllegalArgumentException();
         }
-        Category category = categoryRepository.findById(id).orElseThrow(
+        Category category = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Category with id %d not found", id))
         );
         category.setName(categoryRequest.getName());
-        return categoryConverter.convertToResponse(categoryRepository.save(category));
-    }
-
-    public void deleteCategoryById(Long id) {
-        if (id == null || id < 0) {
-            throw new IllegalArgumentException();
-        }
-        if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException(String.format("Category with id %d not found", id));
-        }
-        categoryRepository.deleteById(id);
+        return converter.convertToResponse(entityRepository.save(category));
     }
 }

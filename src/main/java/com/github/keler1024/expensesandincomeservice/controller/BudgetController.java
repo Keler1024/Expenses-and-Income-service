@@ -1,9 +1,7 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
-import com.github.keler1024.expensesandincomeservice.model.request.TagRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
-import com.github.keler1024.expensesandincomeservice.model.response.TagResponse;
 import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
 import com.github.keler1024.expensesandincomeservice.service.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,7 @@ public class BudgetController extends BaseController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
-        return ResponseEntity.ok(budgetService.getBudgetsByOwnerId(ownerId, relevance, date));
+        return ResponseEntity.ok(budgetService.getByOwnerId(ownerId, relevance, date));
     }
 
     @GetMapping("/{id}")
@@ -47,7 +45,7 @@ public class BudgetController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(budgetService.getBudgetById(id));
+        return ResponseEntity.ok(budgetService.getById(id));
     }
 
     @PostMapping
@@ -59,7 +57,7 @@ public class BudgetController extends BaseController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Long ownerId = getUserIdFromAuthToken(authorization);
-        return new ResponseEntity<>(budgetService.addBudget(budgetRequest, ownerId), HttpStatus.CREATED);
+        return new ResponseEntity<>(budgetService.add(budgetRequest, ownerId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -69,7 +67,7 @@ public class BudgetController extends BaseController {
         if (budgetRequest == null || id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(budgetService.updateBudget(budgetRequest, id), HttpStatus.OK);
+        return new ResponseEntity<>(budgetService.update(budgetRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -77,7 +75,7 @@ public class BudgetController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        budgetService.deleteBudgetById(id);
+        budgetService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
