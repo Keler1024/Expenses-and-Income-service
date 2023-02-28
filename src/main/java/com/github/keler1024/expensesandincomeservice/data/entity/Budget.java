@@ -20,10 +20,10 @@ public class Budget {
     @Column(name = "end_date")
     private LocalDate endDate;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tag_id")
+    @JoinColumn(name = "tag_id", referencedColumnName = "id")
     private Tag tag;
     @Column(name = "owner_id")
     private Long ownerId;

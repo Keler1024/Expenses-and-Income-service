@@ -8,17 +8,13 @@ import java.util.Objects;
 @Table
 public class Category {
     @Id
-    @SequenceGenerator(
-            name = "accountChangeCategory_sequence_generator",
-            sequenceName = "accountChangeCategory_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "accountChangeCategory_sequence_generator"
-    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_sequence_generator")
+    @SequenceGenerator(name = "category_sequence_generator", sequenceName = "category_sequence", allocationSize = 1)
+    @Column(name = "id", nullable = false)
     private Long id;
+    @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
     public Category() {}
@@ -60,10 +56,10 @@ public class Category {
 
     @Override
     public String toString() {
-        return "AccountChangeCategory{" +
+        return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", authorId=" + ownerId +
+                ", ownerId=" + ownerId +
                 '}';
     }
 

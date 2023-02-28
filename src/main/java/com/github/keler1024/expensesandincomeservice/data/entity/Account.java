@@ -10,19 +10,17 @@ import java.util.Objects;
 @Table
 public class Account {
     @Id
-    @SequenceGenerator(
-            name = "account_sequence_generator",
-            sequenceName = "account_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "account_sequence_generator"
-    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_sequence_generator")
+    @SequenceGenerator(name = "account_sequence_generator", sequenceName = "account_sequence", allocationSize = 1)
+    @Column(name = "id", nullable = false)
     private Long id;
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
+    @Column(name = "money", nullable = false)
     private Long money;
+    @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "currency", nullable = false)
     private Currency currency;
 
     public Account(){}

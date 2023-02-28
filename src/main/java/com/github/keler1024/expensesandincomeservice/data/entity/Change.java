@@ -9,31 +9,29 @@ import java.util.*;
 @Table
 public class Change {
     @Id
-    @SequenceGenerator(
-            name = "accountChange_sequence_generator",
-            sequenceName = "accountChange_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "accountChange_sequence_generator"
-    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "change_sequence_generator")
+    @SequenceGenerator(name = "change_sequence_generator", sequenceName = "change_sequence", allocationSize = 1)
+    @Column(name = "id", nullable = false)
     private Long id;
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name="account_id")
+    @JoinColumn(name="account_id", referencedColumnName = "id")
     private Account account;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="category_id")
+    @JoinColumn(name="category_id", referencedColumnName = "id")
     private Category category;
+    @Column(name = "amount", nullable = false)
     private Long amount;
+    @Column(name = "datetime", nullable = false)
     private LocalDateTime dateTime;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "account_change_tags",
-            joinColumns = @JoinColumn(name = "account_change_id"),
-            inverseJoinColumns = @JoinColumn(name = "account_change_tag_id"))
+            joinColumns = @JoinColumn(name = "change_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     private Set<Tag> tags;
+    @Column(name = "place", nullable = false)
     private String place;
+    @Column(name = "comment", nullable = false)
     private String comment;
 
     public Change() {}

@@ -8,17 +8,13 @@ import java.util.Objects;
 @Table
 public class Tag {
     @Id
-    @SequenceGenerator(
-            name = "accountChangeTag_sequence_generator",
-            sequenceName = "accountChangeTag_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "accountChangeTag_sequence_generator"
-    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_sequence_generator")
+    @SequenceGenerator(name = "tag_sequence_generator", sequenceName = "tag_sequence", allocationSize = 1)
+    @Column(name = "id", nullable = false)
     private Long id;
+    @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
     public Tag() {

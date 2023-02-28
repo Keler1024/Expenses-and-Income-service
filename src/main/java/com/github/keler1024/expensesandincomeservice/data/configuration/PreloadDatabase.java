@@ -38,8 +38,8 @@ class PreloadDatabase {
 
             accountRepository.findAll().forEach(account -> log.info("Preloaded " + account));
 
-            Category groceriesCategory = new Category("Groceries", 0L);
-            Category electronicsCategory = new Category("Electronics", 0L);
+            Category groceriesCategory = new Category("Groceries", null);
+            Category electronicsCategory = new Category("Electronics", null);
             categoryRepository.save(groceriesCategory);
             categoryRepository.save(electronicsCategory);
 
