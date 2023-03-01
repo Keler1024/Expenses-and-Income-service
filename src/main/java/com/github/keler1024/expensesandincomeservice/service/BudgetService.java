@@ -79,7 +79,8 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
         if (id == null || id < 0 || budgetRequest == null) {
             throw new IllegalArgumentException();
         }
-        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null) {
+        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null
+                || budgetRequest.getCategoryId() != null && budgetRequest.getTagId() != null) {
             throw new IllegalArgumentException("Budget request must provide either Category id or Tag id");
         }
         Budget budget = entityRepository.findById(id).orElseThrow(

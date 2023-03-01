@@ -153,10 +153,9 @@ public class Change {
 
     @Override
     public String toString() {
-        return "AccountChange{" +
+        return "Change{" +
                 "id=" + id +
                 ", account=" + account +
-//                ", changeType=" + changeType +
                 ", category=" + category +
                 ", amount=" + amount +
                 ", dateTime=" + dateTime +

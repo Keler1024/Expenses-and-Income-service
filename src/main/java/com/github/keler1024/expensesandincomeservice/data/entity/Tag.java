@@ -57,7 +57,7 @@ public class Tag {
 
     @Override
     public String toString() {
-        return "AccountChangeTag{" +
+        return "Tag{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", authorId=" + ownerId +

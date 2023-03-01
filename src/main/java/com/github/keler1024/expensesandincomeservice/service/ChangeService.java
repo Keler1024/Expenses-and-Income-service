@@ -43,6 +43,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     public List<ChangeResponse> getAllChanges(
+            Long ownerId,
             Long accountId,
             Long amount,
             String comparison,
@@ -50,12 +51,16 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
             String place,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            Set<Long> tagIds) {
-        if (accountId == null) {
-            throw new IllegalArgumentException();
+            Set<Long> tagIds
+    ) {
+        if (ownerId == null || ownerId < 0) {
+            throw new IllegalArgumentException("Invalid user id provided");
         }
         SpecificationOnConjunctionBuilder<Change> specificationBuilder = new SpecificationOnConjunctionBuilder<>();
-        specificationBuilder.nestedEqual(List.of("account","id"), accountId);
+        specificationBuilder.nestedEqual(List.of("account", "ownerId"), ownerId);
+        if (accountId != null) {
+            specificationBuilder.nestedEqual(List.of("account", "id"), accountId);
+        }
         if (amount != null && comparison != null) {
             switch (comparison) {
                 case "less":
@@ -69,7 +74,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
             }
         }
         if (categoryId != null) {
-            specificationBuilder.nestedEqual(List.of("category","id"), categoryId);
+            specificationBuilder.nestedEqual(List.of("category", "id"), categoryId);
         }
         if (place != null && !place.isEmpty()) {
             specificationBuilder.like("place", place);

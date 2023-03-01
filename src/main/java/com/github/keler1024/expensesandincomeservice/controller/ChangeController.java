@@ -2,8 +2,10 @@ package com.github.keler1024.expensesandincomeservice.controller;
 
 import com.github.keler1024.expensesandincomeservice.model.request.ChangeRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.ChangeResponse;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.ChangeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,19 +29,22 @@ public class ChangeController {
 
     @GetMapping
     public ResponseEntity<List<ChangeResponse>> getFilteredChanges(
-            @RequestParam(name = "accountId") Long accountId,
+            @RequestParam(name = "accountId", required = false) Long accountId,
             @RequestParam(name = "amount", required = false) Long amount,
             @RequestParam(name = "comparison", required = false) String comparison,
             @RequestParam(name = "categoryId", required = false) Long categoryId,
             @RequestParam(name = "place", required = false) String place,
             @RequestParam(name = "startDate", required = false) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) LocalDateTime endDate,
-            @RequestParam(name = "tags", required = false) Set<Long> tags) {
-        if (accountId == null || !datesAreValid(startDate, endDate)) {
+            @RequestParam(name = "tags", required = false) Set<Long> tags,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (!AuthUtils.isValidBearerAuthHeader(authorization) || !datesAreValid(startDate, endDate)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         List<ChangeResponse> changeList = changeService.getAllChanges(
-                accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
+                ownerId, accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
         return new ResponseEntity<>(changeList, HttpStatus.OK);
     }
 
