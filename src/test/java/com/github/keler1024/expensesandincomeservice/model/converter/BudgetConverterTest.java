@@ -1,20 +1,26 @@
 package com.github.keler1024.expensesandincomeservice.model.converter;
 
-import com.github.keler1024.expensesandincomeservice.data.entity.Budget;
-import com.github.keler1024.expensesandincomeservice.data.entity.Category;
-import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
+import com.github.keler1024.expensesandincomeservice.data.entity.*;
+import com.github.keler1024.expensesandincomeservice.data.enums.Currency;
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
 import com.github.keler1024.expensesandincomeservice.repository.CategoryRepository;
+import com.github.keler1024.expensesandincomeservice.repository.ChangeRepository;
 import com.github.keler1024.expensesandincomeservice.repository.TagRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -25,13 +31,40 @@ public class BudgetConverterTest {
     CategoryRepository categoryRepository;
     @Mock
     TagRepository tagRepository;
+    @Mock
+    ChangeRepository changeRepository;
 
     @InjectMocks
     BudgetConverter budgetConverter;
 
+    Account account = new Account(2L, 1L, 100L, "Card", Currency.RUB);
+
     Category category = new Category(2L, "TestCategory", 1L);
 
     Tag tag = new Tag(2L, "TestTag", 1L);
+
+    List<Change> changeList = List.of(
+            new Change(
+                    3L,
+                    account,
+                    category,
+                    -2300L,
+                    LocalDateTime.of(2022, 8, 1, 12, 30, 45),
+                    "TestPlace",
+                    "TestComment",
+                    Collections.emptySet()
+            ),
+            new Change(
+                    4L,
+                    account,
+                    category,
+                    -550L,
+                    LocalDateTime.of(2022, 8, 2, 17, 24, 1),
+                    "TestPlace2",
+                    "TestComment2",
+                    Set.of(tag)
+            )
+    );
 
     void testRequestToEntity(BudgetRequest budgetRequest, Budget budget) {
         assertEquals(budgetRequest.getSize(), budget.getSize());
@@ -58,6 +91,7 @@ public class BudgetConverterTest {
         assertEquals(budget.getSize(), budgetResponse.getSize());
         assertEquals(budget.getStartDate(), budgetResponse.getStartDate());
         assertEquals(budget.getEndDate(), budgetResponse.getEndDate());
+        assertEquals(changeList.stream().mapToLong(Change::getAmount).sum(), budgetResponse.getSpent());
         if (budget.getCategory() != null) {
             assertEquals(budget.getCategory().getId(), budgetResponse.getCategoryId());
         }
@@ -108,6 +142,7 @@ public class BudgetConverterTest {
                 null,
                 1L);
 
+        when(changeRepository.findAll(ArgumentMatchers.<Specification<Change>>any())).thenReturn(changeList);
         BudgetResponse budgetResponse = budgetConverter.convertToResponse(budget);
 
         testEntityToResponse(budget, budgetResponse);
