@@ -1,10 +1,8 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
-import com.github.keler1024.expensesandincomeservice.model.request.TagRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
-import com.github.keler1024.expensesandincomeservice.model.response.TagResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +17,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping(path="api/v1/budget")
-public class BudgetController extends BaseController {
+public class BudgetController {
     private final BudgetService budgetService;
     private static final Set<String> relevanceValues = Set.of("all", "current", "past");
 
@@ -29,17 +27,17 @@ public class BudgetController extends BaseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BudgetResponse>> getOwnerBudgets(
+    public ResponseEntity<List<BudgetResponse>> getByOwnerId(
             @RequestParam("relevance") String relevance,
             @RequestParam(value = "date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (!relevanceValues.contains(relevance) || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (!relevanceValues.contains(relevance) || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
-        return ResponseEntity.ok(budgetService.getBudgetsByOwnerId(ownerId, relevance, date));
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return ResponseEntity.ok(budgetService.getByOwnerId(ownerId, relevance, date));
     }
 
     @GetMapping("/{id}")
@@ -47,7 +45,7 @@ public class BudgetController extends BaseController {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(budgetService.getBudgetById(id));
+        return ResponseEntity.ok(budgetService.getById(id));
     }
 
     @PostMapping
@@ -55,11 +53,11 @@ public class BudgetController extends BaseController {
             @RequestBody BudgetRequest budgetRequest,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (budgetRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (budgetRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
-        return new ResponseEntity<>(budgetService.addBudget(budgetRequest, ownerId), HttpStatus.CREATED);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return new ResponseEntity<>(budgetService.add(budgetRequest, ownerId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -69,15 +67,15 @@ public class BudgetController extends BaseController {
         if (budgetRequest == null || id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(budgetService.updateBudget(budgetRequest, id), HttpStatus.OK);
+        return new ResponseEntity<>(budgetService.update(budgetRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BudgetResponse> delete(@PathVariable Long id) {
+    public ResponseEntity<BudgetResponse> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        budgetService.deleteBudgetById(id);
+        budgetService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

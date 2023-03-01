@@ -1,12 +1,9 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.keler1024.expensesandincomeservice.data.entity.Account;
-import com.github.keler1024.expensesandincomeservice.model.converter.AccountConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.AccountRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.AccountResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
-import com.github.keler1024.expensesandincomeservice.security.exception.JWTClaimMissingException;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,11 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path="api/v1/account")
-public class AccountController extends BaseController {
+public class AccountController {
     private final AccountService accountService;
 
     @Autowired
@@ -28,60 +24,59 @@ public class AccountController extends BaseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponse> getAccount(@PathVariable Long id) {
+    public ResponseEntity<AccountResponse> getById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        AccountResponse result = accountService.getAccount(id);
+        AccountResponse result = accountService.getById(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<AccountResponse>> getOwnerAccounts(
+    public ResponseEntity<List<AccountResponse>> getByOwnerId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (!AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (!AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
-        List<AccountResponse> result = accountService.getAccountsByOwnerId(ownerId);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        List<AccountResponse> result = accountService.getByOwnerId(ownerId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> addAccount(@RequestBody AccountRequest accountRequest,
+    public ResponseEntity<AccountResponse> add(@RequestBody AccountRequest accountRequest,
                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (accountRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (accountRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                accountService.addAccount(accountRequest, ownerId),
+                accountService.add(accountRequest, ownerId),
                 HttpStatus.CREATED
         );
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AccountResponse> updateAccount(
+    public ResponseEntity<AccountResponse> update(
             @RequestBody AccountRequest accountRequest,
             @PathVariable Long id,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         if (accountRequest == null || id == null || id < 0
-                || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+                || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                accountService.updateAccount(accountRequest, id),
+                accountService.update(accountRequest, id),
                 HttpStatus.OK
         );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Account> deleteAccount(@PathVariable Long id) {
+    public ResponseEntity<Account> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        accountService.deleteAccount(id);
+        accountService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -26,6 +26,22 @@ public class BudgetResponse {
         this.tagId = tagId;
     }
 
+    public BudgetResponse(Long id,
+                          Long size,
+                          LocalDate startDate,
+                          LocalDate endDate,
+                          Long categoryId,
+                          Long tagId,
+                          Long spent) {
+        this.id = id;
+        this.size = size;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.categoryId = categoryId;
+        this.tagId = tagId;
+        this.spent = spent;
+    }
+
     public BudgetResponse() {}
 
     public Long getId() {

@@ -1,9 +1,8 @@
 package com.github.keler1024.expensesandincomeservice.controller;
 
-import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
 import com.github.keler1024.expensesandincomeservice.model.request.TagRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.TagResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthenticationUtils;
+import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.TagService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path="api/v1/tag")
-public class TagController extends BaseController {
+public class TagController {
     private final TagService tagService;
 
     public TagController(TagService tagService) {
@@ -25,10 +24,10 @@ public class TagController extends BaseController {
     public ResponseEntity<List<TagResponse>> getByOwnerId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if(!AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if(!AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(tagService.getByOwnerId(ownerId), HttpStatus.OK);
     }
 
@@ -45,10 +44,10 @@ public class TagController extends BaseController {
             @RequestBody TagRequest tagRequest,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (tagRequest == null || !AuthenticationUtils.isValidHeaderForBearerAuthentication(authorization)) {
+        if (tagRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = getUserIdFromAuthToken(authorization);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(tagService.add(tagRequest, ownerId), HttpStatus.CREATED);
     }
 
@@ -63,11 +62,11 @@ public class TagController extends BaseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<TagResponse> delete(@PathVariable Long id) {
+    public ResponseEntity<TagResponse> deleteById(@PathVariable Long id) {
         if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        tagService.delete(id);
+        tagService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

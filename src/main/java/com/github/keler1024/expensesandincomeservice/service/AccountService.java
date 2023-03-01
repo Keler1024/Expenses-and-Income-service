@@ -13,64 +13,41 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class AccountService {
-    private final AccountRepository accountRepository;
-    private final AccountConverter accountConverter;
+public class AccountService extends BaseService<AccountRequest, Account, AccountResponse, AccountRepository> {
 
     @Autowired
     public AccountService(AccountRepository accountRepository, AccountConverter accountConverter) {
-        this.accountRepository = accountRepository;
-        this.accountConverter = accountConverter;
+        super(accountRepository, accountConverter);
     }
 
-    public AccountResponse getAccount(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException();
-        }
-        return accountConverter.convertToResponse(
-                accountRepository.findById(id).orElseThrow(
-                        () -> new ResourceNotFoundException(String.format("Account with id %d not found", id))
-                ));
-    }
-
-    public List<AccountResponse> getAccountsByOwnerId(Long ownerId) {
+    public List<AccountResponse> getByOwnerId(Long ownerId) {
         if (ownerId == null) {
             throw new IllegalArgumentException();
         }
-        List<Account> result = accountRepository.findByOwnerId(ownerId);
-        return accountConverter.createResponses(result);
+        List<Account> result = entityRepository.findByOwnerId(ownerId);
+        return converter.createResponses(result);
     }
 
-    public AccountResponse addAccount(AccountRequest accountRequest, Long ownerId) {
+    public AccountResponse add(AccountRequest accountRequest, Long ownerId) {
         if (accountRequest == null || ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
         }
-        Account newAccount = accountConverter.convertToEntity(accountRequest);
+        Account newAccount = converter.convertToEntity(accountRequest);
         newAccount.setOwnerId(ownerId);
-        return accountConverter.convertToResponse(accountRepository.save(newAccount));
+        return converter.convertToResponse(entityRepository.save(newAccount));
     }
 
-    public AccountResponse updateAccount(AccountRequest accountRequest, Long id) {
+    @Override
+    public AccountResponse update(AccountRequest accountRequest, Long id) {
         if (id == null || id < 0 || accountRequest == null) {
             throw new IllegalArgumentException();
         }
-        return accountRepository.findById(id)
-                .map(account -> {
-                    account.setMoney(accountRequest.getMoney());
-                    account.setName(accountRequest.getName());
-                    account.setCurrency(Currency.of(accountRequest.getCurrency()));
-                    return accountConverter.convertToResponse(accountRepository.save(account));
-                })
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Account with id %d not found", id)));
-    }
-
-    public void deleteAccount(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Null instead of Account id provided");
-        }
-        if(!accountRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Account with id " + id + " not found");
-        }
-        accountRepository.deleteById(id);
+        Account account = entityRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException(String.format("Account with id %d not found", id))
+        );
+        account.setMoney(accountRequest.getMoney());
+        account.setName(accountRequest.getName());
+        account.setCurrency(Currency.of(accountRequest.getCurrency()));
+        return converter.convertToResponse(entityRepository.save(account));
     }
 }

@@ -13,59 +13,38 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TagService {
-    private final TagRepository tagRepository;
-    private final TagConverter tagConverter;
+public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRepository> {
 
     @Autowired
     public TagService(TagRepository tagRepository, TagConverter tagConverter) {
-        this.tagRepository = tagRepository;
-        this.tagConverter = tagConverter;
+        super(tagRepository, tagConverter);
     }
 
     public List<TagResponse> getByOwnerId(Long ownerId) {
         if (ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
         }
-        return tagConverter.createResponses(tagRepository.findByOwnerId(ownerId));
-    }
-
-    public TagResponse getById(Long id) {
-        if (id == null || id < 0) {
-            throw new IllegalArgumentException();
-        }
-        return tagConverter.convertToResponse(tagRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Tag with id %d not found", id))
-        ));
+        return converter.createResponses(entityRepository.findByOwnerId(ownerId));
     }
 
     public TagResponse add(TagRequest tagRequest, Long ownerId) {
         if (tagRequest == null) {
             throw new IllegalArgumentException();
         }
-        Tag newTag = tagConverter.convertToEntity(tagRequest);
+        Tag newTag = converter.convertToEntity(tagRequest);
         newTag.setOwnerId(ownerId);
-        return tagConverter.convertToResponse(tagRepository.save(newTag));
+        return converter.convertToResponse(entityRepository.save(newTag));
     }
 
+    @Override
     public TagResponse update(TagRequest tagRequest, Long id) {
         if (id == null || id < 0 || tagRequest == null) {
             throw new IllegalArgumentException();
         }
-        Tag tag = tagRepository.findById(id).orElseThrow(
+        Tag tag = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Tag with id %d not found", id))
         );
         tag.setName(tagRequest.getName());
-        return tagConverter.convertToResponse(tagRepository.save(tag));
-    }
-
-    public void delete(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Null instead of Tag id provided");
-        }
-        if(!tagRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tag with id " + id + " not found");
-        }
-        tagRepository.deleteById(id);
+        return converter.convertToResponse(entityRepository.save(tag));
     }
 }
