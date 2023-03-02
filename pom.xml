@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.keler1024</groupId>
-	<artifactId>expenses-and-income-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>expensesAndIncomeService</artifactId>
+	<version>0.0.1</version>
 	<name>Expenses-and-Income-service</name>
 	<description>Expenses and Income microservice</description>
 	<properties>
