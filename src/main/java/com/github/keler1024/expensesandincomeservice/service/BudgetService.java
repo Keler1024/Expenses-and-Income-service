@@ -3,6 +3,7 @@ package com.github.keler1024.expensesandincomeservice.service;
 import com.github.keler1024.expensesandincomeservice.data.entity.Budget;
 import com.github.keler1024.expensesandincomeservice.data.entity.Change;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
+import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.BudgetConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
@@ -50,16 +51,6 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
     }
 
     @Override
-    public BudgetResponse getById(Long id) {
-        if (id == null || id < 0) {
-            throw new IllegalArgumentException();
-        }
-        Budget budget = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
-        );
-        return converter.convertToResponse(budget);
-    }
-
     public BudgetResponse add(BudgetRequest budgetRequest, Long ownerId) {
         if (budgetRequest == null || ownerId == null) {
             throw new NullPointerException();
@@ -75,7 +66,7 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
     }
 
     @Override
-    public BudgetResponse update(BudgetRequest budgetRequest, Long id) {
+    public BudgetResponse update(BudgetRequest budgetRequest, Long id, Long ownerId) {
         if (id == null || id < 0 || budgetRequest == null) {
             throw new IllegalArgumentException();
         }
@@ -86,6 +77,9 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
         Budget budget = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
         );
+        if (!ownerId.equals(budget.getOwnerId())) {
+            throw new UnauthorizedAccessException();
+        }
         Budget newBudget = converter.convertToEntity(budgetRequest);
         budget.setSize(newBudget.getSize());
         budget.setStartDate(newBudget.getStartDate());
@@ -94,6 +88,11 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
         budget.setTag(newBudget.getTag());
         budget = entityRepository.save(budget);
         return converter.convertToResponse(budget);
+    }
+
+    @Override
+    protected Long getEntityOwnerId(Budget entity) {
+        return entity.getOwnerId();
     }
 
 }

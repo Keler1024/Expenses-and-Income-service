@@ -41,11 +41,15 @@ public class BudgetController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BudgetResponse> getById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<BudgetResponse> getById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(budgetService.getById(id));
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return ResponseEntity.ok(budgetService.getById(id, ownerId));
     }
 
     @PostMapping
@@ -63,19 +67,26 @@ public class BudgetController {
     @PutMapping("/{id}")
     public ResponseEntity<BudgetResponse> update(
             @RequestBody BudgetRequest budgetRequest,
-            @PathVariable Long id) {
-        if (budgetRequest == null || id == null || id < 0) {
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (budgetRequest == null || id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(budgetService.update(budgetRequest, id), HttpStatus.OK);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return new ResponseEntity<>(budgetService.update(budgetRequest, id, ownerId), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BudgetResponse> deleteById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<BudgetResponse> deleteById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        budgetService.deleteById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        budgetService.deleteById(id, ownerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

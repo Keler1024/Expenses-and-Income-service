@@ -24,17 +24,22 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponse> getById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<AccountResponse> getById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        AccountResponse result = accountService.getById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        AccountResponse result = accountService.getById(id, ownerId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity<List<AccountResponse>> getByOwnerId(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
         if (!AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -44,8 +49,10 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> add(@RequestBody AccountRequest accountRequest,
-                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public ResponseEntity<AccountResponse> add(
+            @RequestBody AccountRequest accountRequest,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
         if (accountRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -60,23 +67,28 @@ public class AccountController {
     public ResponseEntity<AccountResponse> update(
             @RequestBody AccountRequest accountRequest,
             @PathVariable Long id,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        if (accountRequest == null || id == null || id < 0
-                || !AuthUtils.isValidBearerAuthHeader(authorization)) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (accountRequest == null || id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
         return new ResponseEntity<>(
-                accountService.update(accountRequest, id),
+                accountService.update(accountRequest, id, ownerId),
                 HttpStatus.OK
         );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Account> deleteById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<Account> deleteById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        accountService.deleteById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        accountService.deleteById(id, ownerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

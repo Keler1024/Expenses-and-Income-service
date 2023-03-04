@@ -49,39 +49,53 @@ public class ChangeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChangeResponse> getById(@PathVariable Long id) {
-        if(id == null || id < 0) {
+    public ResponseEntity<ChangeResponse> getById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if(id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        ChangeResponse changeResponse = changeService.getById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        ChangeResponse changeResponse = changeService.getById(id, ownerId);
         return new ResponseEntity<>(changeResponse, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ChangeResponse> post(@RequestBody ChangeRequest changeRequest) {
-        if(changeRequest == null) {
+    public ResponseEntity<ChangeResponse> post(
+            @RequestBody ChangeRequest changeRequest,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if(changeRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(changeService.add(changeRequest), HttpStatus.CREATED);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return new ResponseEntity<>(changeService.add(changeRequest, ownerId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ChangeResponse> update(
             @RequestBody ChangeRequest changeRequest,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if(id == null || id < 0 | changeRequest == null) {
+        if(id == null || id < 0 | changeRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(changeService.update(changeRequest, id), HttpStatus.OK);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return new ResponseEntity<>(changeService.update(changeRequest, id, ownerId), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ChangeResponse> deleteById(@PathVariable("id") Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<ChangeResponse> deleteById(
+            @PathVariable("id") Long id,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        changeService.deleteById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        changeService.deleteById(id, ownerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -2,6 +2,7 @@ package com.github.keler1024.expensesandincomeservice.service;
 
 import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
+import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.TagConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.TagRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.CategoryResponse;
@@ -27,6 +28,7 @@ public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRep
         return converter.createResponses(entityRepository.findByOwnerId(ownerId));
     }
 
+    @Override
     public TagResponse add(TagRequest tagRequest, Long ownerId) {
         if (tagRequest == null) {
             throw new IllegalArgumentException();
@@ -37,14 +39,25 @@ public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRep
     }
 
     @Override
-    public TagResponse update(TagRequest tagRequest, Long id) {
-        if (id == null || id < 0 || tagRequest == null) {
+    public TagResponse update(TagRequest tagRequest, Long id, Long ownerId) {
+        if (id == null || id < 0 || ownerId == null || ownerId < 0 || tagRequest == null) {
             throw new IllegalArgumentException();
         }
         Tag tag = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Tag with id %d not found", id))
         );
+
+        if (!ownerId.equals(tag.getOwnerId())) {
+            throw new UnauthorizedAccessException();
+        }
+
         tag.setName(tagRequest.getName());
         return converter.convertToResponse(entityRepository.save(tag));
     }
+
+    @Override
+    protected Long getEntityOwnerId(Tag entity) {
+        return entity.getOwnerId();
+    }
+
 }
