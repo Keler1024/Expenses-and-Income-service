@@ -3,6 +3,7 @@ package com.github.keler1024.expensesandincomeservice.service;
 import com.github.keler1024.expensesandincomeservice.data.entity.Account;
 import com.github.keler1024.expensesandincomeservice.data.enums.Currency;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
+import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.AccountConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.AccountRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.AccountResponse;
@@ -21,13 +22,14 @@ public class AccountService extends BaseService<AccountRequest, Account, Account
     }
 
     public List<AccountResponse> getByOwnerId(Long ownerId) {
-        if (ownerId == null) {
+        if (ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
         }
         List<Account> result = entityRepository.findByOwnerId(ownerId);
         return converter.createResponses(result);
     }
 
+    @Override
     public AccountResponse add(AccountRequest accountRequest, Long ownerId) {
         if (accountRequest == null || ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException();
@@ -38,16 +40,26 @@ public class AccountService extends BaseService<AccountRequest, Account, Account
     }
 
     @Override
-    public AccountResponse update(AccountRequest accountRequest, Long id) {
-        if (id == null || id < 0 || accountRequest == null) {
+    public AccountResponse update(AccountRequest accountRequest, Long id, Long ownerId) {
+        if (id == null || id < 0 || ownerId == null || ownerId < 0 || accountRequest == null) {
             throw new IllegalArgumentException();
         }
+
         Account account = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Account with id %d not found", id))
         );
+
+        if (!ownerId.equals(account.getOwnerId())) {
+            throw new UnauthorizedAccessException();
+        }
         account.setMoney(accountRequest.getMoney());
         account.setName(accountRequest.getName());
         account.setCurrency(Currency.of(accountRequest.getCurrency()));
         return converter.convertToResponse(entityRepository.save(account));
+    }
+
+    @Override
+    protected Long getEntityOwnerId(Account entity) {
+        return entity.getOwnerId();
     }
 }

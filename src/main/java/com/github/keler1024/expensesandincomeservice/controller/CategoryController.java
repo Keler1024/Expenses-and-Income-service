@@ -37,18 +37,23 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<CategoryResponse> getById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        CategoryResponse result = categoryService.getById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        CategoryResponse result = categoryService.getById(id, ownerId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<CategoryResponse> add(
             @RequestBody CategoryRequest categoryRequest,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
         if (categoryRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -62,20 +67,26 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> update(
             @RequestBody CategoryRequest categoryRequest,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (categoryRequest == null || id == null || id < 0) {
+        if (categoryRequest == null || id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(categoryService.update(categoryRequest, id), HttpStatus.OK);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        return new ResponseEntity<>(categoryService.update(categoryRequest, id, ownerId), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Category> deleteById(@PathVariable Long id) {
-        if (id == null || id < 0) {
+    public ResponseEntity<Category> deleteById(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        categoryService.deleteById(id);
+        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
+        categoryService.deleteById(id, ownerId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
