@@ -1,6 +1,7 @@
 package com.github.keler1024.expensesandincomeservice.exception.handler;
 
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
+import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,12 @@ public class RestResponseEntityExceptionHandler
         String bodyOfResponse = ex.getMessage();
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(value = UnauthorizedAccessException.class)
+    protected ResponseEntity<Object> handleUnauthorizedAccessException(RuntimeException ex, WebRequest request) {
+        String bodyOfResponse = ex.getMessage();
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
 }
