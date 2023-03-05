@@ -152,7 +152,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
 
     @Override
     public void deleteById(Long id, Long ownerId) {
-        if (id == null || id < 0) {
+        if (id == null || id < 0 || ownerId == null || ownerId < 0) {
             throw new IllegalArgumentException("Null instead of Account change id provided");
         }
         Change change = entityRepository.findById(id).orElseThrow(
