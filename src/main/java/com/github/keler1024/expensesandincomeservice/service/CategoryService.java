@@ -20,10 +20,8 @@ public class CategoryService extends BaseService<CategoryRequest, Category, Cate
         super(categoryRepository, categoryConverter);
     }
 
-    public List<CategoryResponse> getByOwnerId(Long ownerId) {
-        if (ownerId == null || ownerId < 0) {
-            throw new IllegalArgumentException();
-        }
+    public List<CategoryResponse> getByOwnerId() {
+        Long ownerId = getAuthenticatedUserId();
         return converter.createResponses(entityRepository.findByOwnerId(ownerId));
     }
 
@@ -32,23 +30,25 @@ public class CategoryService extends BaseService<CategoryRequest, Category, Cate
     }
 
     @Override
-    public CategoryResponse add(CategoryRequest categoryRequest, Long ownerId) {
+    public CategoryResponse add(CategoryRequest categoryRequest) {
         if (categoryRequest == null) {
             throw new IllegalArgumentException();
         }
         Category newCategory = converter.convertToEntity(categoryRequest);
+        Long ownerId = getAuthenticatedUserId();
         newCategory.setOwnerId(ownerId);
         return converter.convertToResponse(entityRepository.save(newCategory));
     }
 
     @Override
-    public CategoryResponse update(CategoryRequest categoryRequest, Long id, Long ownerId) {
+    public CategoryResponse update(CategoryRequest categoryRequest, Long id) {
         if (id == null || id < 0 || categoryRequest == null) {
             throw new IllegalArgumentException();
         }
         Category category = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Category with id %d not found", id))
         );
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(category.getOwnerId())) {
             throw new UnauthorizedAccessException();
         }
