@@ -29,10 +29,11 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
         super(budgetRepository, budgetConverter);
     }
 
-    public List<BudgetResponse> getByOwnerId(Long ownerId, String relevance, LocalDate date) {
-        if (ownerId == null || ownerId < 0 || relevance == null || (!relevance.equals("all") && date == null)) {
+    public List<BudgetResponse> getByOwnerId(String relevance, LocalDate date) {
+        if (relevance == null || (!relevance.equals("all") && date == null)) {
             throw new IllegalArgumentException();
         }
+        Long ownerId = getAuthenticatedUserId();
         List<Budget> budgetList;
         switch (relevance) {
             case "all":
@@ -51,8 +52,8 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
     }
 
     @Override
-    public BudgetResponse add(BudgetRequest budgetRequest, Long ownerId) {
-        if (budgetRequest == null || ownerId == null) {
+    public BudgetResponse add(BudgetRequest budgetRequest) {
+        if (budgetRequest == null) {
             throw new NullPointerException();
         }
         if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null
@@ -60,13 +61,14 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
             throw new IllegalArgumentException("Budget request must provide either Category id or Tag id");
         }
         Budget newBudget = converter.convertToEntity(budgetRequest);
+        Long ownerId = getAuthenticatedUserId();
         newBudget.setOwnerId(ownerId);
         newBudget = entityRepository.save(newBudget);
         return converter.convertToResponse(newBudget);
     }
 
     @Override
-    public BudgetResponse update(BudgetRequest budgetRequest, Long id, Long ownerId) {
+    public BudgetResponse update(BudgetRequest budgetRequest, Long id) {
         if (id == null || id < 0 || budgetRequest == null) {
             throw new IllegalArgumentException();
         }
@@ -77,6 +79,7 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
         Budget budget = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
         );
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(budget.getOwnerId())) {
             throw new UnauthorizedAccessException();
         }

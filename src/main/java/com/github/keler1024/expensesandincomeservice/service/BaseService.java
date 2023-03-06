@@ -3,6 +3,7 @@ package com.github.keler1024.expensesandincomeservice.service;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
 import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.IRequestToEntityToResponseConverter;
+import com.github.keler1024.expensesandincomeservice.security.AuthContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public abstract class BaseService<Q, E, S, R extends JpaRepository<E, Long>> {
@@ -14,14 +15,14 @@ public abstract class BaseService<Q, E, S, R extends JpaRepository<E, Long>> {
         this.converter = converter;
     }
 
-    public S getById(Long id, Long ownerId) {
-        if (id == null) {
-            throw new IllegalArgumentException();
+    public S getById(Long id) {
+        if (id == null || id < 0) {
+            throw new IllegalArgumentException("Invalid resource id provided");
         }
         E entity = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Resource with id " + id + " not found")
         );
-
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(getEntityOwnerId(entity))) {
             throw new UnauthorizedAccessException();
         }
@@ -29,14 +30,14 @@ public abstract class BaseService<Q, E, S, R extends JpaRepository<E, Long>> {
         return converter.convertToResponse(entity);
     }
 
-    public void deleteById(Long id, Long ownerId) {
-        if (id == null || id < 0 || ownerId == null || ownerId < 0) {
-            throw new IllegalArgumentException("Null instead of Resource id provided");
+    public void deleteById(Long id) {
+        if (id == null || id < 0) {
+            throw new IllegalArgumentException("Invalid resource id provided");
         }
         E entity = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Resource with id " + id + " not found")
         );
-
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(getEntityOwnerId(entity))) {
             throw new UnauthorizedAccessException();
         }
@@ -44,9 +45,13 @@ public abstract class BaseService<Q, E, S, R extends JpaRepository<E, Long>> {
         entityRepository.deleteById(id);
     }
 
-    public abstract S add(Q request, Long ownerId);
+    protected final Long getAuthenticatedUserId() {
+        return AuthContext.getUserId();
+    }
 
-    public abstract S update(Q request, Long id, Long ownerId);
+    public abstract S add(Q request);
+
+    public abstract S update(Q request, Long id);
 
     protected abstract Long getEntityOwnerId(E entity);
 }

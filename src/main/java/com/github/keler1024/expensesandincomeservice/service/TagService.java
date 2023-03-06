@@ -21,32 +21,31 @@ public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRep
         super(tagRepository, tagConverter);
     }
 
-    public List<TagResponse> getByOwnerId(Long ownerId) {
-        if (ownerId == null || ownerId < 0) {
-            throw new IllegalArgumentException();
-        }
+    public List<TagResponse> getByOwnerId() {
+        Long ownerId = getAuthenticatedUserId();
         return converter.createResponses(entityRepository.findByOwnerId(ownerId));
     }
 
     @Override
-    public TagResponse add(TagRequest tagRequest, Long ownerId) {
+    public TagResponse add(TagRequest tagRequest) {
         if (tagRequest == null) {
             throw new IllegalArgumentException();
         }
         Tag newTag = converter.convertToEntity(tagRequest);
+        Long ownerId = getAuthenticatedUserId();
         newTag.setOwnerId(ownerId);
         return converter.convertToResponse(entityRepository.save(newTag));
     }
 
     @Override
-    public TagResponse update(TagRequest tagRequest, Long id, Long ownerId) {
-        if (id == null || id < 0 || ownerId == null || ownerId < 0 || tagRequest == null) {
+    public TagResponse update(TagRequest tagRequest, Long id) {
+        if (id == null || id < 0 || tagRequest == null) {
             throw new IllegalArgumentException();
         }
         Tag tag = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Tag with id %d not found", id))
         );
-
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(tag.getOwnerId())) {
             throw new UnauthorizedAccessException();
         }
@@ -59,5 +58,4 @@ public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRep
     protected Long getEntityOwnerId(Tag entity) {
         return entity.getOwnerId();
     }
-
 }

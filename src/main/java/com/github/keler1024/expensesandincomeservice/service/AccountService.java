@@ -21,34 +21,33 @@ public class AccountService extends BaseService<AccountRequest, Account, Account
         super(accountRepository, accountConverter);
     }
 
-    public List<AccountResponse> getByOwnerId(Long ownerId) {
-        if (ownerId == null || ownerId < 0) {
-            throw new IllegalArgumentException();
-        }
+    public List<AccountResponse> getByOwnerId() {
+        Long ownerId = getAuthenticatedUserId();
         List<Account> result = entityRepository.findByOwnerId(ownerId);
         return converter.createResponses(result);
     }
 
     @Override
-    public AccountResponse add(AccountRequest accountRequest, Long ownerId) {
-        if (accountRequest == null || ownerId == null || ownerId < 0) {
+    public AccountResponse add(AccountRequest accountRequest) {
+        if (accountRequest == null) {
             throw new IllegalArgumentException();
         }
         Account newAccount = converter.convertToEntity(accountRequest);
+        Long ownerId = getAuthenticatedUserId();
         newAccount.setOwnerId(ownerId);
         return converter.convertToResponse(entityRepository.save(newAccount));
     }
 
     @Override
-    public AccountResponse update(AccountRequest accountRequest, Long id, Long ownerId) {
-        if (id == null || id < 0 || ownerId == null || ownerId < 0 || accountRequest == null) {
+    public AccountResponse update(AccountRequest accountRequest, Long id) {
+        if (id == null || id < 0 || accountRequest == null) {
             throw new IllegalArgumentException();
         }
 
         Account account = entityRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException(String.format("Account with id %d not found", id))
         );
-
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(account.getOwnerId())) {
             throw new UnauthorizedAccessException();
         }

@@ -44,7 +44,6 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     public List<ChangeResponse> getAllChanges(
-            Long ownerId,
             Long accountId,
             Long amount,
             String comparison,
@@ -54,9 +53,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
             LocalDateTime endDate,
             Set<Long> tagIds
     ) {
-        if (ownerId == null || ownerId < 0) {
-            throw new IllegalArgumentException("Invalid user id provided");
-        }
+        Long ownerId = getAuthenticatedUserId();
         SpecificationOnConjunctionBuilder<Change> specificationBuilder = new SpecificationOnConjunctionBuilder<>();
         specificationBuilder.nestedEqual(List.of("account", "ownerId"), ownerId);
         if (accountId != null) {
@@ -91,13 +88,13 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     @Override
-    public ChangeResponse add(ChangeRequest changeRequest, Long ownerId) {
-        if (ownerId == null || ownerId < 0 || changeRequest == null) {
+    public ChangeResponse add(ChangeRequest changeRequest) {
+        if (changeRequest == null) {
             throw new IllegalArgumentException();
         }
 
         Change change = converter.convertToEntity(changeRequest);
-
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(change.getAccount().getOwnerId())) {
             throw new UnauthorizedAccessException();
         }
@@ -120,8 +117,8 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     @Override
-    public ChangeResponse update(ChangeRequest changeRequest, Long id, Long ownerId) {
-        if (id == null || id < 0 || ownerId == null || ownerId < 0 || changeRequest == null) {
+    public ChangeResponse update(ChangeRequest changeRequest, Long id) {
+        if (id == null || id < 0 || changeRequest == null) {
             throw new IllegalArgumentException();
         }
         Change change = entityRepository.findById(id).orElseThrow(
@@ -129,6 +126,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
                         String.format("Account change with id %d not found", id)
                 )
         );
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(change.getAccount().getOwnerId())) {
             throw new UnauthorizedAccessException();
         }
@@ -151,8 +149,8 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     @Override
-    public void deleteById(Long id, Long ownerId) {
-        if (id == null || id < 0 || ownerId == null || ownerId < 0) {
+    public void deleteById(Long id) {
+        if (id == null || id < 0) {
             throw new IllegalArgumentException("Null instead of Account change id provided");
         }
         Change change = entityRepository.findById(id).orElseThrow(
@@ -161,6 +159,7 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
                 )
         );
         Account account = change.getAccount();
+        Long ownerId = getAuthenticatedUserId();
         if (!ownerId.equals(account.getOwnerId())) {
             throw new UnauthorizedAccessException();
         }

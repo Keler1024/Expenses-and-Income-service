@@ -39,63 +39,47 @@ public class ChangeController {
             @RequestParam(name = "tags", required = false) Set<Long> tags,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        if (!AuthUtils.isValidBearerAuthHeader(authorization) || !datesAreValid(startDate, endDate)) {
+        if (!datesAreValid(startDate, endDate)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
-        List<ChangeResponse> changeList = changeService.getAllChanges(
-                ownerId, accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
+        List<ChangeResponse> changeList = changeService.getAllChanges(accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
         return new ResponseEntity<>(changeList, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChangeResponse> getById(
-            @PathVariable Long id,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
-    ) {
-        if(id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
+    public ResponseEntity<ChangeResponse> getById(@PathVariable Long id) {
+        if(id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
-        ChangeResponse changeResponse = changeService.getById(id, ownerId);
+        ChangeResponse changeResponse = changeService.getById(id);
         return new ResponseEntity<>(changeResponse, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ChangeResponse> post(
-            @RequestBody ChangeRequest changeRequest,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
-    ) {
-        if(changeRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
+    public ResponseEntity<ChangeResponse> post(@RequestBody ChangeRequest changeRequest) {
+        if(changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
-        return new ResponseEntity<>(changeService.add(changeRequest, ownerId), HttpStatus.CREATED);
+        return new ResponseEntity<>(changeService.add(changeRequest), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ChangeResponse> update(
             @RequestBody ChangeRequest changeRequest,
-            @PathVariable Long id,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+            @PathVariable Long id
     ) {
-        if(id == null || id < 0 | changeRequest == null || !AuthUtils.isValidBearerAuthHeader(authorization)) {
+        if(id == null || id < 0 | changeRequest == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
-        return new ResponseEntity<>(changeService.update(changeRequest, id, ownerId), HttpStatus.OK);
+        return new ResponseEntity<>(changeService.update(changeRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ChangeResponse> deleteById(
-            @PathVariable("id") Long id,
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization
-    ) {
-        if (id == null || id < 0 || !AuthUtils.isValidBearerAuthHeader(authorization)) {
+    public ResponseEntity<ChangeResponse> deleteById(@PathVariable("id") Long id) {
+        if (id == null || id < 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Long ownerId = AuthUtils.getUserIdFromAuthToken(authorization);
-        changeService.deleteById(id, ownerId);
+        changeService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
