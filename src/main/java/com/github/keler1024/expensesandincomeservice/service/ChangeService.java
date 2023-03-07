@@ -23,7 +23,7 @@ import java.util.Set;
 
 
 @Service
-public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResponse, ChangeRepository>{
+public class ChangeService extends EntityService<ChangeRequest, Change, ChangeResponse, ChangeRepository> {
 
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
@@ -88,67 +88,6 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
     }
 
     @Override
-    public ChangeResponse add(ChangeRequest changeRequest) {
-        if (changeRequest == null) {
-            throw new IllegalArgumentException();
-        }
-
-        Change change = converter.convertToEntity(changeRequest);
-        Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(change.getAccount().getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-
-        change.setAccount(accountRepository.findById(changeRequest.getAccountId())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                        String.format("Account change with id %d not found", changeRequest.getAccountId()))
-                ));
-        change.setCategory(categoryRepository.findById(changeRequest.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(
-                                "Category of account change with id %d not found",
-                                changeRequest.getCategoryId()
-                        ))
-                ));
-        change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
-        change.getAccount().setMoney(change.getAccount().getMoney() + change.getAmount());
-        return converter.convertToResponse(entityRepository.save(change));
-    }
-
-    @Override
-    public ChangeResponse update(ChangeRequest changeRequest, Long id) {
-        if (id == null || id < 0 || changeRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Change change = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(
-                        String.format("Account change with id %d not found", id)
-                )
-        );
-        Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(change.getAccount().getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-        Long oldAmount = change.getAmount();
-        change.setAmount(changeRequest.getAmount());
-        change.setDateTime(changeRequest.getDateTime());
-        change.setPlace(changeRequest.getPlace());
-        change.setComment(changeRequest.getComment());
-        if (!changeRequest.getCategoryId().equals(change.getCategory().getId())) {
-            Category newCategory = categoryRepository.findById(changeRequest.getCategoryId()).orElseThrow(
-                    () -> new ResourceNotFoundException(
-                            String.format("Category of account change with id %d not found", id)
-                    )
-            );
-            change.setCategory(newCategory);
-        }
-        change.setTags(tagRepository.findByIdIn(changeRequest.getTagIds()));
-        change.getAccount().setMoney(change.getAccount().getMoney() - oldAmount + change.getAmount());
-        return converter.convertToResponse(entityRepository.save(change));
-    }
-
-    @Override
     public void deleteById(Long id) {
         if (id == null || id < 0) {
             throw new IllegalArgumentException("Null instead of Account change id provided");
@@ -158,14 +97,35 @@ public class ChangeService extends BaseService<ChangeRequest, Change, ChangeResp
                         String.format("Account change with id %d not found", id)
                 )
         );
+        checkOwnership(change);
         Account account = change.getAccount();
-        Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(account.getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
         account.setMoney(account.getMoney() - change.getAmount());
         accountRepository.save(account);
         entityRepository.deleteById(id);
+    }
+
+    @Override
+    protected void performUpdate(Change entity, ChangeRequest request) {
+        Long oldAmount = entity.getAmount();
+        entity.setAmount(request.getAmount());
+        entity.setDateTime(request.getDateTime());
+        entity.setPlace(request.getPlace());
+        entity.setComment(request.getComment());
+        if (!request.getCategoryId().equals(entity.getCategory().getId())) {
+            Category newCategory = categoryRepository.findById(request.getCategoryId()).orElseThrow(
+                    () -> new ResourceNotFoundException(
+                            "Category of account change with id " + request.getCategoryId() + " not found"
+                    )
+            );
+            entity.setCategory(newCategory);
+        }
+        entity.setTags(tagRepository.findByIdIn(request.getTagIds()));
+        entity.getAccount().setMoney(entity.getAccount().getMoney() - oldAmount + entity.getAmount());
+    }
+
+    @Override
+    protected void performOnAdd(Change entity) {
+        entity.getAccount().setMoney(entity.getAccount().getMoney() + entity.getAmount());
     }
 
     @Override

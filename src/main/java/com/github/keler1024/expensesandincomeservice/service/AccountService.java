@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class AccountService extends BaseService<AccountRequest, Account, AccountResponse, AccountRepository> {
+public class AccountService extends EntityService<AccountRequest, Account, AccountResponse, AccountRepository> {
 
     @Autowired
     public AccountService(AccountRepository accountRepository, AccountConverter accountConverter) {
@@ -28,33 +28,16 @@ public class AccountService extends BaseService<AccountRequest, Account, Account
     }
 
     @Override
-    public AccountResponse add(AccountRequest accountRequest) {
-        if (accountRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Account newAccount = converter.convertToEntity(accountRequest);
-        Long ownerId = getAuthenticatedUserId();
-        newAccount.setOwnerId(ownerId);
-        return converter.convertToResponse(entityRepository.save(newAccount));
+    protected void performUpdate(Account entity, AccountRequest request) {
+        entity.setMoney(request.getMoney());
+        entity.setName(request.getName());
+        entity.setCurrency(Currency.of(request.getCurrency()));
     }
 
     @Override
-    public AccountResponse update(AccountRequest accountRequest, Long id) {
-        if (id == null || id < 0 || accountRequest == null) {
-            throw new IllegalArgumentException();
-        }
-
-        Account account = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Account with id %d not found", id))
-        );
+    protected void performOnAdd(Account entity) {
         Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(account.getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-        account.setMoney(accountRequest.getMoney());
-        account.setName(accountRequest.getName());
-        account.setCurrency(Currency.of(accountRequest.getCurrency()));
-        return converter.convertToResponse(entityRepository.save(account));
+        entity.setOwnerId(ownerId);
     }
 
     @Override

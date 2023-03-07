@@ -1,7 +1,8 @@
 package com.github.keler1024.expensesandincomeservice.service;
 
 import com.github.keler1024.expensesandincomeservice.data.entity.Budget;
-import com.github.keler1024.expensesandincomeservice.data.entity.Change;
+import com.github.keler1024.expensesandincomeservice.data.entity.Category;
+import com.github.keler1024.expensesandincomeservice.data.entity.Tag;
 import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundException;
 import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.BudgetConverter;
@@ -9,24 +10,30 @@ import com.github.keler1024.expensesandincomeservice.model.request.BudgetRequest
 import com.github.keler1024.expensesandincomeservice.model.response.BudgetResponse;
 import com.github.keler1024.expensesandincomeservice.repository.BudgetRepository;
 import com.github.keler1024.expensesandincomeservice.repository.CategoryRepository;
-import com.github.keler1024.expensesandincomeservice.repository.ChangeRepository;
 import com.github.keler1024.expensesandincomeservice.repository.TagRepository;
-import com.github.keler1024.expensesandincomeservice.repository.specification.SpecificationOnConjunctionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResponse, BudgetRepository>{
+public class BudgetService extends EntityService<BudgetRequest, Budget, BudgetResponse, BudgetRepository> {
+
+    private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
 
     @Autowired
-    public BudgetService(BudgetRepository budgetRepository, BudgetConverter budgetConverter) {
+    public BudgetService(
+            BudgetRepository budgetRepository,
+            BudgetConverter budgetConverter,
+            CategoryRepository categoryRepository,
+            TagRepository tagRepository
+    ) {
         super(budgetRepository, budgetConverter);
+        this.categoryRepository = categoryRepository;
+        this.tagRepository = tagRepository;
     }
 
     public List<BudgetResponse> getByOwnerId(String relevance, LocalDate date) {
@@ -48,49 +55,42 @@ public class BudgetService extends BaseService<BudgetRequest, Budget, BudgetResp
             default:
                 throw new IllegalArgumentException("Unsupported relevance parameter value");
         }
-        return budgetList.stream().map(converter::convertToResponse).collect(Collectors.toList());
+        return converter.createResponses(budgetList);
     }
 
     @Override
-    public BudgetResponse add(BudgetRequest budgetRequest) {
-        if (budgetRequest == null) {
-            throw new NullPointerException();
+    protected void performUpdate(Budget entity, BudgetRequest request) {
+        if (request.getCategoryId() != null && request.getTagId() != null
+                || request.getCategoryId() == null && request.getTagId() == null) {
+            throw new IllegalArgumentException("Budget request provides both category and tag or none of them");
         }
-        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null
-                || budgetRequest.getCategoryId() != null && budgetRequest.getTagId() != null) {
-            throw new IllegalArgumentException("Budget request must provide either Category id or Tag id");
+        entity.setSize(request.getSize());
+        entity.setStartDate(request.getStartDate());
+        entity.setEndDate(request.getEndDate());
+        Category category = null;
+        if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId()).orElseThrow(
+                    () -> new ResourceNotFoundException(
+                            "Category with id " + request.getCategoryId() + " not found"
+                    )
+            );
         }
-        Budget newBudget = converter.convertToEntity(budgetRequest);
-        Long ownerId = getAuthenticatedUserId();
-        newBudget.setOwnerId(ownerId);
-        newBudget = entityRepository.save(newBudget);
-        return converter.convertToResponse(newBudget);
+        Tag tag = null;
+        if (request.getTagId() != null) {
+            tag = tagRepository.findById(request.getTagId()).orElseThrow(
+                    () -> new ResourceNotFoundException(
+                            "Tag with id " + request.getTagId() + " not found"
+                    )
+            );
+        }
+        entity.setCategory(category);
+        entity.setTag(tag);
     }
 
     @Override
-    public BudgetResponse update(BudgetRequest budgetRequest, Long id) {
-        if (id == null || id < 0 || budgetRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        if (budgetRequest.getCategoryId() == null && budgetRequest.getTagId() == null
-                || budgetRequest.getCategoryId() != null && budgetRequest.getTagId() != null) {
-            throw new IllegalArgumentException("Budget request must provide either Category id or Tag id");
-        }
-        Budget budget = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Budget with id %d not found", id))
-        );
+    protected void performOnAdd(Budget entity) {
         Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(budget.getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-        Budget newBudget = converter.convertToEntity(budgetRequest);
-        budget.setSize(newBudget.getSize());
-        budget.setStartDate(newBudget.getStartDate());
-        budget.setEndDate(newBudget.getEndDate());
-        budget.setCategory(newBudget.getCategory());
-        budget.setTag(newBudget.getTag());
-        budget = entityRepository.save(budget);
-        return converter.convertToResponse(budget);
+        entity.setOwnerId(ownerId);
     }
 
     @Override

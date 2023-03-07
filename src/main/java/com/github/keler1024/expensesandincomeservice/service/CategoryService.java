@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CategoryService extends BaseService<CategoryRequest, Category, CategoryResponse, CategoryRepository>{
+public class CategoryService extends EntityService<CategoryRequest, Category, CategoryResponse, CategoryRepository> {
 
     @Autowired
     public CategoryService(CategoryRepository categoryRepository, CategoryConverter categoryConverter) {
@@ -30,30 +30,14 @@ public class CategoryService extends BaseService<CategoryRequest, Category, Cate
     }
 
     @Override
-    public CategoryResponse add(CategoryRequest categoryRequest) {
-        if (categoryRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Category newCategory = converter.convertToEntity(categoryRequest);
-        Long ownerId = getAuthenticatedUserId();
-        newCategory.setOwnerId(ownerId);
-        return converter.convertToResponse(entityRepository.save(newCategory));
+    protected void performUpdate(Category entity, CategoryRequest request) {
+        entity.setName(request.getName());
     }
 
     @Override
-    public CategoryResponse update(CategoryRequest categoryRequest, Long id) {
-        if (id == null || id < 0 || categoryRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Category category = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Category with id %d not found", id))
-        );
+    protected void performOnAdd(Category entity) {
         Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(category.getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-        category.setName(categoryRequest.getName());
-        return converter.convertToResponse(entityRepository.save(category));
+        entity.setOwnerId(ownerId);
     }
 
     @Override

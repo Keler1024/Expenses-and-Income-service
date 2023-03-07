@@ -5,7 +5,6 @@ import com.github.keler1024.expensesandincomeservice.exception.ResourceNotFoundE
 import com.github.keler1024.expensesandincomeservice.exception.UnauthorizedAccessException;
 import com.github.keler1024.expensesandincomeservice.model.converter.TagConverter;
 import com.github.keler1024.expensesandincomeservice.model.request.TagRequest;
-import com.github.keler1024.expensesandincomeservice.model.response.CategoryResponse;
 import com.github.keler1024.expensesandincomeservice.model.response.TagResponse;
 import com.github.keler1024.expensesandincomeservice.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRepository> {
+public class TagService extends EntityService<TagRequest, Tag, TagResponse, TagRepository> {
 
     @Autowired
     public TagService(TagRepository tagRepository, TagConverter tagConverter) {
@@ -27,31 +26,14 @@ public class TagService extends BaseService<TagRequest, Tag, TagResponse, TagRep
     }
 
     @Override
-    public TagResponse add(TagRequest tagRequest) {
-        if (tagRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Tag newTag = converter.convertToEntity(tagRequest);
-        Long ownerId = getAuthenticatedUserId();
-        newTag.setOwnerId(ownerId);
-        return converter.convertToResponse(entityRepository.save(newTag));
+    protected void performUpdate(Tag entity, TagRequest request) {
+        entity.setName(request.getName());
     }
 
     @Override
-    public TagResponse update(TagRequest tagRequest, Long id) {
-        if (id == null || id < 0 || tagRequest == null) {
-            throw new IllegalArgumentException();
-        }
-        Tag tag = entityRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(String.format("Tag with id %d not found", id))
-        );
+    protected void performOnAdd(Tag entity) {
         Long ownerId = getAuthenticatedUserId();
-        if (!ownerId.equals(tag.getOwnerId())) {
-            throw new UnauthorizedAccessException();
-        }
-
-        tag.setName(tagRequest.getName());
-        return converter.convertToResponse(entityRepository.save(tag));
+        entity.setOwnerId(ownerId);
     }
 
     @Override
