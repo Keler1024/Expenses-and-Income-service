@@ -5,7 +5,7 @@ import java.util.Objects;
 
 
 @Entity
-@Table
+@Table(name = "category")
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_sequence_generator")

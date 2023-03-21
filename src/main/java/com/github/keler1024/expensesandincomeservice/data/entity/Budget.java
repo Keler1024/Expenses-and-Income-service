@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
-@Table
+@Table(name = "budget")
 public class Budget {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "budget_sequence_generator")

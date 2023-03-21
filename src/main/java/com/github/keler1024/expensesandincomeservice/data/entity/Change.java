@@ -6,7 +6,7 @@ import java.util.*;
 
 
 @Entity
-@Table
+@Table(name = "change")
 public class Change {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "change_sequence_generator")
@@ -172,7 +172,6 @@ public class Change {
         Change that = (Change) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(account, that.account)
-//                && changeType == that.changeType
                 && Objects.equals(category, that.category)
                 && Objects.equals(tags, that.tags)
                 && Objects.equals(amount, that.amount)

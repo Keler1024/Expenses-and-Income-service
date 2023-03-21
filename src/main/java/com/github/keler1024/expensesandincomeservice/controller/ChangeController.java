@@ -2,10 +2,9 @@ package com.github.keler1024.expensesandincomeservice.controller;
 
 import com.github.keler1024.expensesandincomeservice.model.request.ChangeRequest;
 import com.github.keler1024.expensesandincomeservice.model.response.ChangeResponse;
-import com.github.keler1024.expensesandincomeservice.security.AuthUtils;
 import com.github.keler1024.expensesandincomeservice.service.ChangeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,15 +33,18 @@ public class ChangeController {
             @RequestParam(name = "comparison", required = false) String comparison,
             @RequestParam(name = "categoryId", required = false) Long categoryId,
             @RequestParam(name = "place", required = false) String place,
-            @RequestParam(name = "startDate", required = false) LocalDateTime startDate,
-            @RequestParam(name = "endDate", required = false) LocalDateTime endDate,
-            @RequestParam(name = "tags", required = false) Set<Long> tags,
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization
+            @RequestParam(name = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(name = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(name = "tags", required = false) Set<Long> tags
     ) {
         if (!datesAreValid(startDate, endDate)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        List<ChangeResponse> changeList = changeService.getAllChanges(accountId, amount, comparison, categoryId, place, startDate, endDate, tags);
+        List<ChangeResponse> changeList = changeService.getAllChanges(
+                accountId, amount, comparison, categoryId, place, startDate, endDate, tags
+        );
         return new ResponseEntity<>(changeList, HttpStatus.OK);
     }
 
@@ -84,6 +86,6 @@ public class ChangeController {
     }
 
     private static boolean datesAreValid(LocalDateTime start, LocalDateTime end) {
-        return (start == null && end == null) || (start != null && !start.isBefore(end));
+        return (start == null && end == null) || (start != null && start.isBefore(end));
     }
 }
